@@ -2,22 +2,21 @@ import os
 import logging
 import datetime
 from pathlib import Path
-from typing import Optional
 
 from PySide6.QtWidgets import (
     QWidget, QFileDialog, QMessageBox, QListWidgetItem, QApplication, QMainWindow
 )
-from PySide6.QtGui import QIcon, QBrush, QColor, QTextCursor
-from PySide6.QtCore import Qt, Signal, QThreadPool, QSettings
+from PySide6.QtGui import QIcon, QTextCursor
+from PySide6.QtCore import Signal, QThreadPool, QSettings
 
+from openAIClient.worker import WorkerRunnable
 from openAIClient.gui.Ui_conversationWidget import Ui_conversationForm
-from openAIClient.gui.worker import WorkerRunnable
 from openAIClient.gui.customTextEdit import SendableTextEdit
 from openAIClient.gui.customListItem import CustomListItem
 from openAIClient.utils.markdownUtils import convertMarkdownToHtml
 from openAIClient.utils.fileUtils import normalizeFilePath, isBinaryFile
 from openAIClient.chatSession import ChatSession
-from openAIClient.config import resourcePath, getDatabasePath
+from openAIClient.config import resourcePath
 
 
 class ChatTab(QWidget):

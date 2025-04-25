@@ -2,7 +2,7 @@ import sys
 import logging
 
 from PySide6.QtWidgets import QApplication
-from openAIClient.gui.mainWindow import MainWindow
+from openAIClient.mainWindow import MainWindow
 from openAIClient.loggingConfig import setupLogging
 
 setupLogging()
