@@ -1,0 +1,43 @@
+
+# primary I
+openai==1.70.0
+
+# primary II
+colorlog==6.9.0
+Markdown==3.7
+pdfminer.six==20250327
+Pygments==2.19.1
+pyinstaller
+PySide6==6.9.0
+PySide6_Addons==6.9.0
+PySide6_Essentials==6.9.0
+python-docx==1.1.2
+pytz
+
+# dependencies
+annotated-types==0.7.0
+anyio==4.9.0
+certifi==2025.1.31
+cffi==1.17.1
+charset-normalizer==3.4.1
+colorama==0.4.6
+cryptography==44.0.2
+distro==1.9.0
+h11==0.14.0
+httpcore==1.0.7
+httpx==0.28.1
+idna==3.10
+jiter==0.9.0
+lxml==5.3.2
+pycparser==2.22
+pydantic==2.11.2
+pydantic_core==2.33.1
+regex==2024.11.6
+requests==2.32.3
+shiboken6==6.9.0
+sniffio==1.3.1
+tiktoken==0.9.0
+tqdm==4.67.1
+typing-inspection==0.4.0
+typing_extensions==4.13.1
+urllib3==2.3.0
