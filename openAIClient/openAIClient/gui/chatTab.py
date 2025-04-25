@@ -305,7 +305,7 @@ class ChatTab(QWidget):
         """
         settingsFile = (Path(__file__).resolve().parent.parent / "settings.ini")
         settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
-        lastDirValue = settings.value("lastDirectory", "")
+        lastDirValue = settings.value("General/lastDirectory", "")
         if lastDirValue:
             return str(Path(lastDirValue).resolve())
         return ""
@@ -319,7 +319,7 @@ class ChatTab(QWidget):
         """
         settingsFile = (Path(__file__).resolve().parent.parent / "settings.ini")
         settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
-        settings.setValue("lastDirectory", directory)
+        settings.setValue("General/lastDirectory", directory)
 
     def onSendClicked(self):
         """
