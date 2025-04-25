@@ -4,6 +4,7 @@ import logging
 import configparser
 import datetime
 from typing import Optional, Tuple
+from pathlib import Path
 
 from PySide6.QtWidgets import (
     QMainWindow, QMessageBox, QApplication, QComboBox, QLabel, QListWidgetItem,
@@ -335,6 +336,14 @@ class MainWindow(QMainWindow):
                     return  # Early exit since the tab is already open
 
         if chatSession in (None, False):
+            settingsFile = (Path(__file__).resolve().parent.parent / "settings.ini")
+            settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
+            lastSelectedDeployment = settings.value("General/lastSelectedDeployment", "")
+            index = self.deploymentComboBox.findText(str(lastSelectedDeployment))
+
+            if index != -1:
+                self.deploymentComboBox.setCurrentIndex(index)   # Set the current index if found
+
             # Retrieve the deployment from the combobox
             selectedIndex = self.deploymentComboBox.currentIndex()
             if selectedIndex < 0:
@@ -664,7 +673,7 @@ class MainWindow(QMainWindow):
         # Save the last selected deployment
         lastDeployment = self.deploymentComboBox.currentData()
         if lastDeployment:
-            settings.setValue("Deployment/lastSelectedDeployment", lastDeployment["deploymentName"])
+            settings.setValue("General/lastSelectedDeployment", lastDeployment["deploymentName"])
             logging.info(f"Saved last selected deployment: {lastDeployment['deploymentName']}")
         logging.info("Saved window geometry and last selected deployment to %s", settingsFile)
 
