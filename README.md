@@ -6,13 +6,13 @@ Obelisca Divergencia is yet another Azure OpenAI client.
 
 Well... Azure OpenAI changed their API for the new reasoning models. The client that 
 I was previously using didn't pick up these changes, so I was left with no access
-to the new o1 and o3 models. I raised an issue with them and waited for a month, but 
+to the new `o1` and `o3` models. I raised an issue with them and waited for a month, but 
 they were obviously busy and the changed API was not a priority for them.
 
 So, I just decided to write my own client. 🙈
 
 This project is for my own education and entertainment. It is specifically geared to 
-the Azure flavour of the o1 and o3 models. Of course, you have to bring your 
+the Azure flavour of the `o1` and `o3` models. Of course, you have to bring your 
 own API key.
 
 ### API keys
@@ -33,5 +33,5 @@ the Azure deployment.
 * PDF and Word attachments should be supported, but are not thoroughly tested.
 * So far I'm only testing on Windows, but this being a Python and Pyside6 project,
  it shouldn't be difficult to run it on Linux or MacOS.
-* Precompiled Windows binary is available in the ``dist`` folder.
+* Precompiled Windows binary is available
 
