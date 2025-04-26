@@ -2,22 +2,21 @@ import os
 import logging
 import datetime
 from pathlib import Path
-from typing import Optional
 
 from PySide6.QtWidgets import (
     QWidget, QFileDialog, QMessageBox, QListWidgetItem, QApplication, QMainWindow
 )
-from PySide6.QtGui import QIcon, QBrush, QColor, QTextCursor
-from PySide6.QtCore import Qt, Signal, QThreadPool, QSettings
+from PySide6.QtGui import QIcon, QTextCursor
+from PySide6.QtCore import Signal, QThreadPool, QSettings
 
+from openAIClient.worker import WorkerRunnable
 from openAIClient.gui.Ui_conversationWidget import Ui_conversationForm
-from openAIClient.gui.worker import WorkerRunnable
 from openAIClient.gui.customTextEdit import SendableTextEdit
 from openAIClient.gui.customListItem import CustomListItem
 from openAIClient.utils.markdownUtils import convertMarkdownToHtml
 from openAIClient.utils.fileUtils import normalizeFilePath, isBinaryFile
 from openAIClient.chatSession import ChatSession
-from openAIClient.config import resourcePath, getDatabasePath
+from openAIClient.config import resourcePath
 
 
 class ChatTab(QWidget):
@@ -303,11 +302,14 @@ class ChatTab(QWidget):
         Returns:
             str: The path of the last used directory.
         """
-        settingsFile = (Path(__file__).resolve().parent.parent / "settings.ini")
-        settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
-        lastDirValue = settings.value("General/lastDirectory", "")
-        if lastDirValue:
-            return str(Path(lastDirValue).resolve())
+        parent = self.parentWidget()
+        while parent and not isinstance(parent, QMainWindow):
+            parent = parent.parentWidget()
+        if parent and hasattr(parent, 'settings'):
+            lastDirValue = parent.settings.value("App/lastDirectory", "")
+            if lastDirValue:
+                return str(Path(lastDirValue).resolve())
+
         return ""
 
     def setLastDirectory(self, directory: str):
@@ -317,9 +319,11 @@ class ChatTab(QWidget):
         Args:
             directory (str): The path of the directory to save.
         """
-        settingsFile = (Path(__file__).resolve().parent.parent / "settings.ini")
-        settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
-        settings.setValue("General/lastDirectory", directory)
+        parent = self.parentWidget()
+        while parent and not isinstance(parent, QMainWindow):
+            parent = parent.parentWidget()
+        if parent and hasattr(parent, 'settings'):
+            parent.settings.setValue("App/lastDirectory", directory)
 
     def onSendClicked(self):
         """

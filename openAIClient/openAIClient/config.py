@@ -29,45 +29,6 @@ def resourcePath(relativePath: str, forcedPath: bool = False) -> str:
     return os.path.join(baseDir, relativePath)
 
 
-def getDeploymentConfigs() -> List[Dict[str, str]]:
-    """
-    Retrieves all deployment configurations from the settings.ini file.
-
-    Returns:
-        List[Dict[str, str]]: A list of deployment configuration dictionaries.
-    """
-    settingsPath = resourcePath("settings.ini")
-    logging.info(f"Reading deployment configurations from: {settingsPath}")
-
-    config = configparser.ConfigParser()
-    config.read(settingsPath)
-
-    deployments = []
-    for section in config.sections():
-        if section.startswith("Deployment_Config"):
-            deployment = {
-                "section": section,
-                "type": config.get(section, "type", fallback="openai").strip(),
-                "endpoint": config.get(section, "endpoint", fallback="https://api.openai.com/v1").strip(),
-                "deploymentName": config.get(section, "deploymentName", fallback="gpt-3.5-turbo").strip(),
-                "apiVersion": config.get(section, "apiVersion", fallback="").strip()
-            }
-            deployments.append(deployment)
-            logging.info(f"Loaded deployment: {deployment['deploymentName']}")
-
-    if not deployments:
-        logging.warning("No deployment configurations found in settings.ini.")
-        deployments.append({
-            "section": "Default",
-            "type": "openai",
-            "endpoint": "https://api.openai.com/v1",
-            "deploymentName": "gpt-3.5-turbo",
-            "apiVersion": ""
-        })
-
-    return deployments
-
-
 def initOpenAiClient(deploymentConfig: Dict[str, str]) -> [openai.OpenAI|openai.AzureOpenAI]:
     """
     Initializes the OpenAI client based on a specific deployment configuration.
