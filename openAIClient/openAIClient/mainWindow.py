@@ -2,7 +2,8 @@ import sys
 import os
 import logging
 import datetime
-from typing import Optional
+import configparser
+from typing import Optional, List, Dict
 from pathlib import Path
 
 from PySide6.QtWidgets import (
@@ -16,7 +17,7 @@ from openAIClient.gui.Ui_mainWindow import Ui_MainWindow
 from openAIClient.chatTab import ChatTab
 from openAIClient.chatSession import ChatSession
 from openAIClient.utils.database import ConversationDatabase
-from openAIClient.config import getDatabasePath, resourcePath, getDeploymentConfigs
+from openAIClient.config import getDatabasePath, resourcePath
 
 
 class MainWindow(QMainWindow):
@@ -81,18 +82,21 @@ class MainWindow(QMainWindow):
         self.ui.toolBar.addAction(self.actionNewChat)
         self.ui.toolBar.addAction(self.actionDeleteChat)
 
-        # --- Deployment Combobox Setup ---
+        # settings
+        settingsFile = resourcePath("settings.ini")
+        logging.info(f"Reading configuration from: {settingsFile}")
+        self.settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
+
+        # Deployment Combobox Setup
         self.deploymentComboBox = QComboBox()
         self.loadDeploymentOptions()  # Populate the combobox from settings.ini
         self.ui.toolBar.addSeparator()
         self.ui.toolBar.addWidget(QLabel("Deployment: "))
         self.ui.toolBar.addWidget(self.deploymentComboBox)
-        # -------------------------------------
 
-        # --- Token Display Labels ---
+        # Token Display Labels
         self.totalTokensLabel = QLabel("Tokens: <b>0</b>")
         self.ui.statusBar.addPermanentWidget(self.totalTokensLabel)
-        # ------------------------------
 
         # Initialize the SQLite database.
         dbPath = getDatabasePath()
@@ -233,7 +237,7 @@ class MainWindow(QMainWindow):
             if conversation:
                 deploymentName = conversation["deployment_name"]
                 # Find the deployment config matching the deploymentName
-                deployments = getDeploymentConfigs()
+                deployments = self.getDeploymentConfigs()
                 deploymentConfig = next((d for d in deployments if d["deploymentName"] == deploymentName), None)
 
                 if not deploymentConfig:
@@ -261,20 +265,50 @@ class MainWindow(QMainWindow):
             else:
                 QMessageBox.warning(self, "Summarize Conversation", "Selected conversation could not be loaded.")
 
+    def getDeploymentConfigs(self) -> List[Dict[str, str]]:
+        """
+        Retrieves all deployment configurations from the settings.ini file.
+
+        Returns:
+            List[Dict[str, str]]: A list of deployment configuration dictionaries.
+        """
+        deployments = []
+        for group in self.settings.childGroups():
+            if group.startswith("Deployment_Config"):
+                self.settings.beginGroup(group)
+                config = {"type": self.settings.value("type", "openai"),
+                          "endpoint": self.settings.value("endpoint", "https://api.openai.com/v1"),
+                          "deploymentName": self.settings.value("deploymentName", "gpt-3.5-turbo"),
+                          "apiVersion": self.settings.value("apiVersion", "")}
+                self.settings.endGroup()
+                deployments.append(config)
+
+        if not deployments:
+            logging.warning("No deployment configurations found in settings.ini.")
+            deployments.append({
+                "type": "openai",
+                "endpoint": "https://api.openai.com/v1",
+                "deploymentName": "gpt-3.5-turbo",
+                "apiVersion": ""
+            })
+
+        return deployments
+
     def loadDeploymentOptions(self):
         """
         Reads the deployments from the settings.ini file and populates the combobox.
         """
-        deployments = getDeploymentConfigs()
+        deployments = self.getDeploymentConfigs()
+
         if not deployments:
-            deployments = [{
+            logging.warning("No deployment configurations found in settings.ini.")
+            deployments.append({
                 "section": "Default",
                 "type": "openai",
                 "endpoint": "https://api.openai.com/v1",
                 "deploymentName": "gpt-3.5-turbo",
                 "apiVersion": ""
-            }]
-            logging.warning("No deployments found. Using default deployment.")
+            })
 
         self.deploymentComboBox.clear()
         for deployment in deployments:
@@ -335,9 +369,7 @@ class MainWindow(QMainWindow):
                     return  # Early exit since the tab is already open
 
         if chatSession in (None, False):
-            settingsFile = (Path(__file__).resolve().parent.parent / "settings.ini")
-            settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
-            lastSelectedDeployment = settings.value("General/lastSelectedDeployment", "")
+            lastSelectedDeployment = self.settings.value("App/lastSelectedDeployment", "")
             index = self.deploymentComboBox.findText(str(lastSelectedDeployment))
 
             if index != -1:
@@ -444,7 +476,7 @@ class MainWindow(QMainWindow):
             # Initialize ChatSession with existing history and correct deployment name
             deploymentName = conversation["deployment_name"]
             # Find the deployment config matching the deploymentName
-            deployments = getDeploymentConfigs()
+            deployments = self.getDeploymentConfigs()
             deploymentConfig = next((d for d in deployments if d["deploymentName"] == deploymentName), None)
 
             if not deploymentConfig:
@@ -596,11 +628,7 @@ class MainWindow(QMainWindow):
         Loads the window's geometry from the INI file and adjusts it to ensure
         the window is fully visible across all available screens.
         """
-        # Assuming deployments are already loaded into the combobox
-        settingsFile = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "settings.ini")
-        settings = QSettings(settingsFile, QSettings.Format.IniFormat)
-        geometry = settings.value("Window/geometry")
-
+        geometry = self.settings.value("Window/geometry", "")
         # Restore Geometry if Available
         if geometry:
             if isinstance(geometry, str):
@@ -666,15 +694,9 @@ class MainWindow(QMainWindow):
         """
         Saves the window's geometry and the last selected deployment to the INI file.
         """
-        settingsFile = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "settings.ini")
-        settings = QSettings(settingsFile, QSettings.Format.IniFormat)
-        settings.setValue("Window/geometry", self.saveGeometry())
-        # Save the last selected deployment
-        lastDeployment = self.deploymentComboBox.currentData()
-        if lastDeployment:
-            settings.setValue("General/lastSelectedDeployment", lastDeployment["deploymentName"])
-            logging.info(f"Saved last selected deployment: {lastDeployment['deploymentName']}")
-        logging.info("Saved window geometry and last selected deployment to %s", settingsFile)
+        self.settings.setValue("Window/geometry", self.saveGeometry())
+        self.settings.setValue("App/lastSelectedDeployment", self.deploymentComboBox.currentData()["deploymentName"])
+        self.settings.sync()
 
     def updateConversationsListItem(self, conversationId: int, newTitle: str):
         """

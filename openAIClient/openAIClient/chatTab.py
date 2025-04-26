@@ -302,11 +302,14 @@ class ChatTab(QWidget):
         Returns:
             str: The path of the last used directory.
         """
-        settingsFile = (Path(__file__).resolve().parent.parent / "settings.ini")
-        settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
-        lastDirValue = settings.value("General/lastDirectory", "")
-        if lastDirValue:
-            return str(Path(lastDirValue).resolve())
+        parent = self.parentWidget()
+        while parent and not isinstance(parent, QMainWindow):
+            parent = parent.parentWidget()
+        if parent and hasattr(parent, 'settings'):
+            lastDirValue = parent.settings.value("App/lastDirectory", "")
+            if lastDirValue:
+                return str(Path(lastDirValue).resolve())
+
         return ""
 
     def setLastDirectory(self, directory: str):
@@ -316,9 +319,11 @@ class ChatTab(QWidget):
         Args:
             directory (str): The path of the directory to save.
         """
-        settingsFile = (Path(__file__).resolve().parent.parent / "settings.ini")
-        settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
-        settings.setValue("General/lastDirectory", directory)
+        parent = self.parentWidget()
+        while parent and not isinstance(parent, QMainWindow):
+            parent = parent.parentWidget()
+        if parent and hasattr(parent, 'settings'):
+            parent.settings.setValue("App/lastDirectory", directory)
 
     def onSendClicked(self):
         """
