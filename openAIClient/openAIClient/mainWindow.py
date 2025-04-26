@@ -93,6 +93,12 @@ class MainWindow(QMainWindow):
         self.ui.toolBar.addSeparator()
         self.ui.toolBar.addWidget(QLabel("Deployment: "))
         self.ui.toolBar.addWidget(self.deploymentComboBox)
+        # restore last deployment
+        lastSelectedDeployment = self.settings.value("App/lastSelectedDeployment", "")
+        index = self.deploymentComboBox.findText(str(lastSelectedDeployment))
+
+        if index != -1:
+            self.deploymentComboBox.setCurrentIndex(index)
 
         # Token Display Labels
         self.totalTokensLabel = QLabel("Tokens: <b>0</b>")
@@ -369,19 +375,6 @@ class MainWindow(QMainWindow):
                     return  # Early exit since the tab is already open
 
         if chatSession in (None, False):
-            lastSelectedDeployment = self.settings.value("App/lastSelectedDeployment", "")
-            index = self.deploymentComboBox.findText(str(lastSelectedDeployment))
-
-            if index != -1:
-                self.deploymentComboBox.setCurrentIndex(index)   # Set the current index if found
-
-            # Retrieve the deployment from the combobox
-            selectedIndex = self.deploymentComboBox.currentIndex()
-            if selectedIndex < 0:
-                QMessageBox.warning(self, "No Deployment", "No deployment configuration selected.")
-                logging.error("No deployment configuration selected.")
-                return
-
             deploymentConfig = self.deploymentComboBox.currentData()
             if not deploymentConfig:
                 QMessageBox.warning(self, "Invalid Deployment", "Selected deployment configuration is invalid.")
