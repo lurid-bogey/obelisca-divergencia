@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="obeliscaDivergencia",
-    version="0.6.0",
+    version="0.7.0",
     author="lurid-bogey",
     author_email="lurid-bogey@gmx.com",
     description="Obelisca Divergencia is a helpful Azure OpenAI client.",
