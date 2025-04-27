@@ -12,13 +12,13 @@ class TestFileUtils(unittest.TestCase):
 
     def test_isBinaryFile_true(self):
         # Test binary file detection
-        binaryExtensions = ('.png', '.exe')
+        binaryExtensions = (".png", ".exe")
         self.assertTrue(isBinaryFile("image.png", binaryExtensions))
         self.assertTrue(isBinaryFile("installer.EXE", binaryExtensions))
 
     def test_isBinaryFile_false(self):
         # Test non-binary file detection
-        binaryExtensions = ('.png', '.exe')
+        binaryExtensions = (".png", ".exe")
         self.assertFalse(isBinaryFile("document.txt", binaryExtensions))
         self.assertFalse(isBinaryFile("script.py", binaryExtensions))
 
@@ -35,5 +35,5 @@ class TestFileUtils(unittest.TestCase):
         self.assertEqual(normalized_actual, normalized_expected)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

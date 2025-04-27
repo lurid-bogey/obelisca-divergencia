@@ -7,8 +7,16 @@ from typing import Optional, List, Dict
 from pathlib import Path
 
 from PySide6.QtWidgets import (
-    QMainWindow, QMessageBox, QApplication, QComboBox, QLabel, QListWidgetItem,
-    QListWidget, QMenu, QInputDialog, QAbstractItemView
+    QMainWindow,
+    QMessageBox,
+    QApplication,
+    QComboBox,
+    QLabel,
+    QListWidgetItem,
+    QListWidget,
+    QMenu,
+    QInputDialog,
+    QAbstractItemView,
 )
 from PySide6.QtCore import QByteArray, QSettings, Qt, QPoint
 from PySide6.QtGui import QIcon, QKeySequence, QAction
@@ -25,6 +33,7 @@ class MainWindow(QMainWindow):
     Main application window for the Azure OpenAI Chat GUI.
     Manages multiple ChatTab instances and integrates conversation management via SQLite.
     """
+
     def __init__(self, systemPrompt: str):
         super().__init__()
         self.systemPrompt = systemPrompt
@@ -36,7 +45,8 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.ui.conversationsList.setStyleSheet("""
+        self.ui.conversationsList.setStyleSheet(
+            """
             QListWidget::item {
                 padding: 5px;               /* padding around individual items */
                 margin: 2px;                /* spacing between items */
@@ -45,7 +55,8 @@ class MainWindow(QMainWindow):
             QListWidget::item:selected {
                 background-color: #8aa0d7;  /* darker blue background when selected */
             }
-        """)
+        """
+        )
 
         # Enable custom context menu
         self.ui.conversationsList.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -58,14 +69,14 @@ class MainWindow(QMainWindow):
         # Create new chat action.
         self.actionNewChat = QAction("New Chat", self)
         self.actionNewChat.setIcon(QIcon(resourcePath("assets/add-square.png", forcedPath=True)))
-        self.actionNewChat.setToolTip('Start a new conversation')
+        self.actionNewChat.setToolTip("Start a new conversation")
         self.actionNewChat.setShortcut(QKeySequence("Ctrl+T"))
         self.actionNewChat.triggered.connect(self.createNewChatTab)
 
         # Create delete chat action.
         self.actionDeleteChat = QAction("Delete Chat", self)
         self.actionDeleteChat.setIcon(QIcon(resourcePath("assets/subtract-square.png", forcedPath=True)))
-        self.actionDeleteChat.setToolTip('Delete selected conversation(s)')
+        self.actionDeleteChat.setToolTip("Delete selected conversation(s)")
         self.actionDeleteChat.setShortcut(QKeySequence(Qt.Key.Key_Delete))
         self.actionDeleteChat.triggered.connect(self.deleteSelectedChat)
 
@@ -247,14 +258,14 @@ class MainWindow(QMainWindow):
                 deploymentConfig = next((d for d in deployments if d["deploymentName"] == deploymentName), None)
 
                 if not deploymentConfig:
-                    QMessageBox.warning(self, "Deployment Not Found", f"No deployment configuration found for '{deploymentName}'.")
+                    QMessageBox.warning(
+                        self, "Deployment Not Found", f"No deployment configuration found for '{deploymentName}'."
+                    )
                     logging.error(f"No deployment configuration found for '{deploymentName}'.")
                     return
 
                 chatSession = ChatSession(
-                    systemPrompt=self.systemPrompt,
-                    deploymentConfig=deploymentConfig,
-                    maxContextTokens=100000
+                    systemPrompt=self.systemPrompt, deploymentConfig=deploymentConfig, maxContextTokens=100000
                 )
                 # Load existing conversation history
                 chatSession.loadConversationHistory(conversation["conversation_history"])
@@ -282,21 +293,25 @@ class MainWindow(QMainWindow):
         for group in self.settings.childGroups():
             if group.startswith("Deployment_Config"):
                 self.settings.beginGroup(group)
-                config = {"type": self.settings.value("type", "openai"),
-                          "endpoint": self.settings.value("endpoint", "https://api.openai.com/v1"),
-                          "deploymentName": self.settings.value("deploymentName", "gpt-3.5-turbo"),
-                          "apiVersion": self.settings.value("apiVersion", "")}
+                config = {
+                    "type": self.settings.value("type", "openai"),
+                    "endpoint": self.settings.value("endpoint", "https://api.openai.com/v1"),
+                    "deploymentName": self.settings.value("deploymentName", "gpt-3.5-turbo"),
+                    "apiVersion": self.settings.value("apiVersion", ""),
+                }
                 self.settings.endGroup()
                 deployments.append(config)
 
         if not deployments:
             logging.warning("No deployment configurations found in settings.ini.")
-            deployments.append({
-                "type": "openai",
-                "endpoint": "https://api.openai.com/v1",
-                "deploymentName": "gpt-3.5-turbo",
-                "apiVersion": ""
-            })
+            deployments.append(
+                {
+                    "type": "openai",
+                    "endpoint": "https://api.openai.com/v1",
+                    "deploymentName": "gpt-3.5-turbo",
+                    "apiVersion": "",
+                }
+            )
 
         return deployments
 
@@ -308,13 +323,15 @@ class MainWindow(QMainWindow):
 
         if not deployments:
             logging.warning("No deployment configurations found in settings.ini.")
-            deployments.append({
-                "section": "Default",
-                "type": "openai",
-                "endpoint": "https://api.openai.com/v1",
-                "deploymentName": "gpt-3.5-turbo",
-                "apiVersion": ""
-            })
+            deployments.append(
+                {
+                    "section": "Default",
+                    "type": "openai",
+                    "endpoint": "https://api.openai.com/v1",
+                    "deploymentName": "gpt-3.5-turbo",
+                    "apiVersion": "",
+                }
+            )
 
         self.deploymentComboBox.clear()
         for deployment in deployments:
@@ -347,7 +364,7 @@ class MainWindow(QMainWindow):
                 if utcTimestamp.tzinfo is None:
                     utcTimestamp = utcTimestamp.replace(tzinfo=datetime.timezone.utc)
                 localTimestamp = utcTimestamp.astimezone()
-                formattedTimestamp = localTimestamp.strftime('%Y-%m-%d %H:%M:%S %z')
+                formattedTimestamp = localTimestamp.strftime("%Y-%m-%d %H:%M:%S %z")
             except ValueError:
                 # Fallback if parsing fails
                 formattedTimestamp = createdAt
@@ -386,14 +403,18 @@ class MainWindow(QMainWindow):
                 systemPrompt=self.systemPrompt,
                 deploymentConfig=deploymentConfig,
                 db=self.conversationDb,
-                maxContextTokens=100000
+                maxContextTokens=100000,
             )
 
             # Add a new conversation to the database with a temporary title
             title = f"Conversation {len(self.chatTabs) + 1}"
-            conversationId = self.conversationDb.addConversation(title, chatSession.deploymentName, chatSession.conversationHistory)
+            conversationId = self.conversationDb.addConversation(
+                title, chatSession.deploymentName, chatSession.conversationHistory
+            )
             if conversationId is None:
-                QMessageBox.critical(self, "Database Error", "Failed to create a new conversation. Please check the logs for more details.")
+                QMessageBox.critical(
+                    self, "Database Error", "Failed to create a new conversation. Please check the logs for more details."
+                )
                 logging.error("Failed to create a new conversation. Aborting tab creation.")
                 return
             logging.info(f"Added new conversation to database with ID {conversationId} and title '{title}'.")
@@ -418,10 +439,10 @@ class MainWindow(QMainWindow):
                 if utcTimestamp.tzinfo is None:
                     utcTimestamp = utcTimestamp.replace(tzinfo=datetime.timezone.utc)
                 localTimestamp = utcTimestamp.astimezone()
-                isoTimestamp = localTimestamp.strftime('%Y-%m-%d %H:%M:%S %z')
+                isoTimestamp = localTimestamp.strftime("%Y-%m-%d %H:%M:%S %z")
             else:
                 # Fallback to current UTC time if retrieval fails
-                isoTimestamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S %z')
+                isoTimestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S %z")
 
             item.setToolTip(f"{isoTimestamp} | Tokens: {chatSession.countTokens()}")
             # Make the item editable
@@ -445,7 +466,9 @@ class MainWindow(QMainWindow):
         # Update the mapping dictionary
         self.conversationIdToTab[conversationId] = newTab
 
-        logging.info(f"Created new chat tab with deployment: {chatSession.deploymentName} for conversation ID {conversationId}.")
+        logging.info(
+            f"Created new chat tab with deployment: {chatSession.deploymentName} for conversation ID {conversationId}."
+        )
 
     def onConversationSelected(self, item: QListWidgetItem):
         """
@@ -482,7 +505,7 @@ class MainWindow(QMainWindow):
                 deploymentConfig=deploymentConfig,
                 conversationId=conversationId,
                 db=self.conversationDb,
-                maxContextTokens=100000
+                maxContextTokens=100000,
             )
             # Load existing conversation history
             chatSession.loadConversationHistory(conversation["conversation_history"])
@@ -505,7 +528,7 @@ class MainWindow(QMainWindow):
             "Delete Conversation",
             "Are you sure you want to delete the selected conversation(s)?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
 
         if confirm != QMessageBox.StandardButton.Yes:
@@ -564,8 +587,9 @@ class MainWindow(QMainWindow):
             totalTokens = newChatTab.chatSession.lastTotalTokens
             currentTokenCount = newChatTab.chatSession.countTokens()
             self.updateTokenDisplay(totalTokens, currentTokenCount)
-            logging.info("Switched to tab index %d with total tokens: %d and current tokens: %d",
-                         index, totalTokens, currentTokenCount)
+            logging.info(
+                "Switched to tab index %d with total tokens: %d and current tokens: %d", index, totalTokens, currentTokenCount
+            )
 
             # Highlight the corresponding conversation in the list
             conversationId = newChatTab.conversationId

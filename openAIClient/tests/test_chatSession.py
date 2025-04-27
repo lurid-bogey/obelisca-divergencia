@@ -20,7 +20,7 @@ class TestChatSession(unittest.TestCase):
 
     def test_extractTextFromDocx_valid(self):
         # Test extracting text from a valid DOCX file
-        with patch('openAIClient.chatSession.Document') as MockDocument:
+        with patch("openAIClient.chatSession.Document") as MockDocument:
             mock_doc = MagicMock()
             mock_doc.paragraphs = [MagicMock(text="Paragraph 1"), MagicMock(text="Paragraph 2")]
             MockDocument.return_value = mock_doc
@@ -29,39 +29,39 @@ class TestChatSession(unittest.TestCase):
 
     def test_extractTextFromDocx_exception(self):
         # Test extracting text from a DOCX file that raises an exception
-        with patch('openAIClient.chatSession.Document', side_effect=Exception("Failed to open DOCX")):
+        with patch("openAIClient.chatSession.Document", side_effect=Exception("Failed to open DOCX")):
             text = self.chatSession.extractTextFromDocx("dummy.docx")
             self.assertEqual(text, "")
 
     def test_extractTextFromPdf_valid(self):
         # Test extracting text from a valid PDF file
-        with patch('openAIClient.chatSession.extract_text', return_value="Extracted PDF text"):
+        with patch("openAIClient.chatSession.extract_text", return_value="Extracted PDF text"):
             text = self.chatSession.extractTextFromPdf("dummy.pdf")
             self.assertEqual(text, "Extracted PDF text")
 
     def test_extractTextFromPdf_exception(self):
         # Test extracting text from a PDF file that raises an exception
-        with patch('openAIClient.chatSession.extract_text', side_effect=Exception("Failed to open PDF")):
+        with patch("openAIClient.chatSession.extract_text", side_effect=Exception("Failed to open PDF")):
             text = self.chatSession.extractTextFromPdf("dummy.pdf")
             self.assertEqual(text, "")
 
     def test_readFilesContent_singleFile(self):
         # Test reading content from a single file
-        with patch('openAIClient.chatSession.os.path.exists', return_value=True), \
-             patch('openAIClient.chatSession.os.path.isdir', return_value=False), \
-             patch('openAIClient.chatSession.ChatSession._readSingleFile', return_value="File Content"):
+        with patch("openAIClient.chatSession.os.path.exists", return_value=True), patch(
+            "openAIClient.chatSession.os.path.isdir", return_value=False
+        ), patch("openAIClient.chatSession.ChatSession._readSingleFile", return_value="File Content"):
             content = self.chatSession.readFilesContent("dummy.txt")
             self.assertEqual(content, "File Content")
 
     def test_readFilesContent_multipleFiles(self):
         # Test reading content from multiple files
-        with patch('openAIClient.chatSession.os.path.exists', return_value=True), \
-             patch('openAIClient.chatSession.os.path.isdir', side_effect=[False, False]), \
-             patch('openAIClient.chatSession.ChatSession._readSingleFile', side_effect=["Content1", "Content2"]):
+        with patch("openAIClient.chatSession.os.path.exists", return_value=True), patch(
+            "openAIClient.chatSession.os.path.isdir", side_effect=[False, False]
+        ), patch("openAIClient.chatSession.ChatSession._readSingleFile", side_effect=["Content1", "Content2"]):
             content = self.chatSession.readFilesContent("file1.txt,file2.txt")
             self.assertEqual(content, "Content1Content2")
 
-    @patch('openAIClient.chatSession.openai.chat.completions.create')
+    @patch("openAIClient.chatSession.openai.chat.completions.create")
     def test_sendMessage_success(self, mock_create):
         # Mock the OpenAI API response
         mock_response = MagicMock()
@@ -75,11 +75,8 @@ class TestChatSession(unittest.TestCase):
         self.assertEqual(len(self.chatSession.conversationHistory), 3)  # system message + user message + reply
         self.assertEqual(self.chatSession.conversationHistory[-1]["content"], "Assistant reply")
 
-    @patch.dict(os.environ, {
-        "AZURE_OPENAI_API_KEY": "test-api-key",
-        "OPENAI_API_VERSION": "2024-12-01-preview"
-    })
-    @patch('openAIClient.chatSession.openai.chat.completions.create', side_effect=Exception("API Error"))
+    @patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-api-key", "OPENAI_API_VERSION": "2024-12-01-preview"})
+    @patch("openAIClient.chatSession.openai.chat.completions.create", side_effect=Exception("API Error"))
     def test_sendMessage_api_exception(self, mock_create):
         # Test sending message when OpenAI API raises an exception
         reply = self.chatSession.sendMessage("Hello", [])
@@ -89,7 +86,7 @@ class TestChatSession(unittest.TestCase):
     def test_countTokens(self):
         # Test token counting
         self.chatSession.conversationHistory.append({"role": "user", "content": "Test message"})
-        with patch('openAIClient.chatSession.tiktoken.get_encoding') as mock_encoding:
+        with patch("openAIClient.chatSession.tiktoken.get_encoding") as mock_encoding:
             mock_encoder = MagicMock()
             mock_encoder.encode.return_value = [0] * 3  # Assume 3 tokens
             mock_encoding.return_value = mock_encoder
@@ -102,12 +99,12 @@ class TestChatSession(unittest.TestCase):
         self.chatSession.conversationHistory = [
             {"role": "user", "content": "First message"},
             {"role": "assistant", "content": "Assistant reply"},
-            {"role": "user", "content": "Second message"}
+            {"role": "user", "content": "Second message"},
         ]
-        with patch('openAIClient.chatSession.ChatSession.countTokens', return_value=20):
+        with patch("openAIClient.chatSession.ChatSession.countTokens", return_value=20):
             self.chatSession.trimConversationHistory()
             self.assertEqual(len(self.chatSession.conversationHistory), 2)  # Should remove oldest user message
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

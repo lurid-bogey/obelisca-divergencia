@@ -13,6 +13,7 @@ class WorkerRunnable(QRunnable):
     """
     Worker Runnable for executing the API call in a background thread.
     """
+
     def __init__(self, chatSession: ChatSession, userText: str, filePathList: list):
         super().__init__()
         self.chatSession = chatSession

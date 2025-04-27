@@ -1,6 +1,5 @@
 import os
 import sys
-import configparser
 import logging
 import openai
 from typing import List, Dict
@@ -17,7 +16,7 @@ def resourcePath(relativePath: str, forcedPath: bool = False) -> str:
     Returns:
         str: The absolute path to the resource.
     """
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # PyInstaller creates a temp folder and stores path in sys._MEIPASS
         baseDir = os.path.dirname(sys.executable)
     else:
@@ -29,7 +28,7 @@ def resourcePath(relativePath: str, forcedPath: bool = False) -> str:
     return os.path.join(baseDir, relativePath)
 
 
-def initOpenAiClient(deploymentConfig: Dict[str, str]) -> [openai.OpenAI|openai.AzureOpenAI]:
+def initOpenAiClient(deploymentConfig: Dict[str, str]) -> [openai.OpenAI | openai.AzureOpenAI]:
     """
     Initializes the OpenAI client based on a specific deployment configuration.
 

@@ -14,7 +14,7 @@ def setupLogging():
             "WARNING": "purple",
             "ERROR": "red",
             "CRITICAL": "bold_red",
-        }
+        },
     )
     consoleHandler.setFormatter(formatter)
 

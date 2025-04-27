@@ -3,9 +3,7 @@ import logging
 import datetime
 from pathlib import Path
 
-from PySide6.QtWidgets import (
-    QWidget, QFileDialog, QMessageBox, QListWidgetItem, QApplication, QMainWindow
-)
+from PySide6.QtWidgets import QWidget, QFileDialog, QMessageBox, QListWidgetItem, QApplication, QMainWindow
 from PySide6.QtGui import QIcon, QTextCursor
 from PySide6.QtCore import Signal, QThreadPool, QSettings
 
@@ -24,9 +22,10 @@ class ChatTab(QWidget):
     A dedicated ChatTab widget that encapsulates its own conversation UI,
     attached file list, and ChatSession.
     """
+
     # Define signals
-    tokenUpdated = Signal(int, int)      # totalTokens, currentTokenCount
-    titleUpdated = Signal(int, str)      # conversationId, newTitle
+    tokenUpdated = Signal(int, int)  # totalTokens, currentTokenCount
+    titleUpdated = Signal(int, str)  # conversationId, newTitle
 
     def __init__(self, chatSession: ChatSession, conversationId: int, parent=None):
         super().__init__(parent)
@@ -61,9 +60,7 @@ class ChatTab(QWidget):
 
         self.ui.attachedFilesList.setStyleSheet("background-color: #fafafa;")
         self.ui.sendButton.setStyleSheet("text-align: left; padding-left: 10px; background-color: #eef2ff;")
-        self.ui.busyIndicator.setStyleSheet(
-           "background-color: #eef2ff; color: blue; font-weight: bold;"
-        )
+        self.ui.busyIndicator.setStyleSheet("background-color: #eef2ff; color: blue; font-weight: bold;")
 
         # Configure button icons and sizes.
         self.ui.attachButton.setIcon(QIcon(resourcePath("assets/file-add.png", forcedPath=True)))
@@ -87,9 +84,9 @@ class ChatTab(QWidget):
         """
         # Locate the parent that stores conversationDb (typically the MainWindow)
         parent = self.parentWidget()
-        while parent and not hasattr(parent, 'conversationDb'):
+        while parent and not hasattr(parent, "conversationDb"):
             parent = parent.parentWidget()
-        if parent and hasattr(parent, 'conversationDb'):
+        if parent and hasattr(parent, "conversationDb"):
             try:
                 # Execute a query joining the files table with the conversation_attachements
                 query = """
@@ -102,11 +99,9 @@ class ChatTab(QWidget):
                 rows = cursor.fetchall()
                 # Save all the attached file paths into self.attachedFiles.
                 self.attachedFiles = [row[0] for row in rows]
-                logging.info("Loaded %d attached files for conversation ID %d",
-                             len(self.attachedFiles), self.conversationId)
+                logging.info("Loaded %d attached files for conversation ID %d", len(self.attachedFiles), self.conversationId)
             except Exception as e:
-                logging.error("Failed to load attached files for conversation %d: %s",
-                              self.conversationId, e)
+                logging.error("Failed to load attached files for conversation %d: %s", self.conversationId, e)
 
     def loadExistingConversation(self):
         """
@@ -155,9 +150,9 @@ class ChatTab(QWidget):
 
         # Read from the database the files which were already attached if needed.
         parent = self.parentWidget()
-        while parent and not hasattr(parent, 'conversationDb'):
+        while parent and not hasattr(parent, "conversationDb"):
             parent = parent.parentWidget()
-        if parent and hasattr(parent, 'conversationDb'):
+        if parent and hasattr(parent, "conversationDb"):
             parent.conversationDb.recordAttachmentsForConversation(self.conversationId, newFiles)
 
         # Update the UI list widget.
@@ -199,9 +194,9 @@ class ChatTab(QWidget):
         self.attachedFiles.extend(newFiles)
 
         parent = self.parentWidget()
-        while parent and not hasattr(parent, 'conversationDb'):
+        while parent and not hasattr(parent, "conversationDb"):
             parent = parent.parentWidget()
-        if parent and hasattr(parent, 'conversationDb'):
+        if parent and hasattr(parent, "conversationDb"):
             parent.conversationDb.recordAttachmentsForConversation(self.conversationId, newFiles)
 
         # Update the UI list widget.
@@ -225,14 +220,15 @@ class ChatTab(QWidget):
             customWidget.removeClicked.connect(self.removeAttachedFile)
 
             self.ui.attachedFilesList.setStyleSheet(
-            """QListWidget::item {
+                """QListWidget::item {
                 background-color: #eef2ff;  /* light blue background */
                 border: 1px solid #ccc; 
                 border-radius: 4px;
             }
             QListWidget::item:selected {
                 background-color: #8aa0d7;  /* darker blue background when selected */
-            }""")
+            }"""
+            )
 
             self.ui.attachedFilesList.addItem(item)
             self.ui.attachedFilesList.setItemWidget(item, customWidget)
@@ -259,7 +255,7 @@ class ChatTab(QWidget):
         for i in range(listWidget.count()):
             item = listWidget.item(i)
             widget = listWidget.itemWidget(item)
-            if hasattr(widget, 'rightIconButton') and getattr(widget.rightIconButton, "customData", None) == filePath:
+            if hasattr(widget, "rightIconButton") and getattr(widget.rightIconButton, "customData", None) == filePath:
                 itemToRemove = item
                 break
 
@@ -271,21 +267,23 @@ class ChatTab(QWidget):
 
         # Remove from the database
         parent = self.parentWidget()
-        while parent and not hasattr(parent, 'conversationDb'):
+        while parent and not hasattr(parent, "conversationDb"):
             parent = parent.parentWidget()
-        if parent and hasattr(parent, 'conversationDb'):
+        if parent and hasattr(parent, "conversationDb"):
             try:
                 # Retrieve the file ID
-                cursor = parent.conversationDb.conn.execute(
-                    'SELECT id FROM files WHERE file_path = ?', (filePath,))
+                cursor = parent.conversationDb.conn.execute("SELECT id FROM files WHERE file_path = ?", (filePath,))
                 row = cursor.fetchone()
                 if row:
                     fileId = row[0]
                     # Delete the attachment relationship
                     parent.conversationDb.conn.execute(
-                        'DELETE FROM conversation_attachements WHERE conversation_id = ? AND file_id = ?',
-                        (self.conversationId, fileId))
-                    logging.info(f"Deleted attachment relationship for file ID {fileId} and conversation ID {self.conversationId}.")
+                        "DELETE FROM conversation_attachements WHERE conversation_id = ? AND file_id = ?",
+                        (self.conversationId, fileId),
+                    )
+                    logging.info(
+                        f"Deleted attachment relationship for file ID {fileId} and conversation ID {self.conversationId}."
+                    )
 
                 # Clean up orphaned files
                 parent.conversationDb.deleteOrphanedFiles()
@@ -305,7 +303,7 @@ class ChatTab(QWidget):
         parent = self.parentWidget()
         while parent and not isinstance(parent, QMainWindow):
             parent = parent.parentWidget()
-        if parent and hasattr(parent, 'settings'):
+        if parent and hasattr(parent, "settings"):
             lastDirValue = parent.settings.value("App/lastDirectory", "")
             if lastDirValue:
                 return str(Path(lastDirValue).resolve())
@@ -322,7 +320,7 @@ class ChatTab(QWidget):
         parent = self.parentWidget()
         while parent and not isinstance(parent, QMainWindow):
             parent = parent.parentWidget()
-        if parent and hasattr(parent, 'settings'):
+        if parent and hasattr(parent, "settings"):
             parent.settings.setValue("App/lastDirectory", directory)
 
     def onSendClicked(self):
@@ -392,13 +390,13 @@ class ChatTab(QWidget):
         parent = self.parentWidget()
         while parent and not isinstance(parent, QMainWindow):
             parent = parent.parentWidget()
-        if parent and hasattr(parent, 'conversationDb'):
+        if parent and hasattr(parent, "conversationDb"):
             conversation = parent.conversationDb.getConversationById(self.conversationId)
             if conversation and conversation["title"].startswith("Conversation"):
                 firstUserMessage = self.chatSession.getFirstUserMessage()
                 if firstUserMessage:
                     # Truncate to seven words
-                    title = ' '.join(firstUserMessage.split()[:7])
+                    title = " ".join(firstUserMessage.split()[:7])
                     parent.conversationDb.updateConversationTitle(self.conversationId, title)
                     # Emit the titleUpdated signal with conversationId and newTitle
                     self.titleUpdated.emit(self.conversationId, title)
@@ -432,7 +430,7 @@ class ChatTab(QWidget):
         self.ui.busyIndicator.setVisible(False)
 
     def appendToConversation(self, text: str):
-        """ Appends a message to the conversation display with a local timestamp.
+        """Appends a message to the conversation display with a local timestamp.
         Args:
           text (str): The text to append.
         """
@@ -443,7 +441,7 @@ class ChatTab(QWidget):
         localTime = utcTime.astimezone()  # Defaults to the system's local timezone
 
         # Format the timestamp as desired
-        formattedTimestamp = localTime.strftime('%Y-%m-%d %H:%M:%S %z')
+        formattedTimestamp = localTime.strftime("%Y-%m-%d %H:%M:%S %z")
 
         fullTextWithTimestamp = f"{text}\n<span style='font-size: small; color: gray;'>{formattedTimestamp}</span>"
 
@@ -464,9 +462,6 @@ class ChatTab(QWidget):
         parent = self.parentWidget()
         while parent and not isinstance(parent, QMainWindow):
             parent = parent.parentWidget()
-        if parent and hasattr(parent, 'conversationDb'):
-            parent.conversationDb.updateConversationHistory(
-                self.conversationId,
-                self.chatSession.conversationHistory
-            )
+        if parent and hasattr(parent, "conversationDb"):
+            parent.conversationDb.updateConversationHistory(self.conversationId, self.chatSession.conversationHistory)
             logging.info(f"Saved updated conversation history for ID {self.conversationId}.")

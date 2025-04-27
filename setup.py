@@ -19,12 +19,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        "openAIClient": [
-            "assets/",
-            "gui/",
-            "utils/",
-            "tests/"
-        ],
+        "openAIClient": ["assets/", "gui/", "utils/", "tests/"],
     },
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -39,7 +34,7 @@ setup(
         "Topic :: Software Development :: Build Tools",
         "Topic :: Utilities",
     ],
-    python_requires='>=3.10',
+    python_requires=">=3.10",
     install_requires=requirements,
     entry_points={
         "console_scripts": [
@@ -50,11 +45,5 @@ setup(
         "openAIClient/build/build.bat",
     ],
     license="GNU General Public License v3.0",
-    keywords=[
-        "Azure",
-        "OpenAI",
-        "Client",
-        "Chat",
-        "GUI"
-    ],
+    keywords=["Azure", "OpenAI", "Client", "Chat", "GUI"],
 )
