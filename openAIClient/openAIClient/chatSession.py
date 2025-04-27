@@ -1,5 +1,4 @@
 import os
-import openai
 import logging
 from typing import Optional, Dict
 from docx import Document
@@ -11,11 +10,12 @@ from openAIClient.utils.database import ConversationDatabase
 
 
 class ChatSession:
-    FOLDER_BLACKLIST = (".git", ".svn", ".idea", ".vscode", "__pycache__")
+    FOLDER_BLACKLIST = (".git", ".github", ".svn", ".idea", ".vscode", "__pycache__")
     # List of file extensions that are considered binary.
     BINARY_EXTENSIONS = (
         '.png', '.jpg', '.jpeg', '.gif', '.bmp',
-        '.exe', '.zip', '.tar', '.gz', '.url', '.db', '.sqlite'
+        '.zip', '.tar', '.gz', '.url', '.db', '.sqlite',
+        '.exe', '.dll', '.pyd',
     )
 
     FILE_MARKER_START = "<|file|>"
