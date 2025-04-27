@@ -177,3 +177,4 @@ patch_certifi.py
 conversations.db
 /openAIClient/build/build/
 /openAIClient/build/dist/obeliscaDivergencia/
+/openAIClient/build/dist/obeliscaDivergencia.exe
