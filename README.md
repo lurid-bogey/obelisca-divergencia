@@ -28,6 +28,7 @@ Obelisca Divergencia should work with both of them, but I am only using and test
 the Azure deployment.
 
 # Features
+
 * Conversations are persisted in a SQLite database, so past conversations are not lost.
 * You can attach files to the conversation.
 * PDF and Word attachments should be supported, but are not thoroughly tested.
@@ -35,3 +36,20 @@ the Azure deployment.
  it shouldn't be difficult to run it on Linux or MacOS.
 * Precompiled Windows binary is available
 
+# Installation
+
+### Clone the repo
+```
+mkdir obelisca
+cd obelisca
+git clone git@github.com:lurid-bogey/obelisca-divergencia.git .
+cd openAIClient
+```
+
+### Run the project
+```
+python -m venv env
+env\Scripts\activate.bat
+pip install -r requirements.txt
+python -m openAIClient
+```
