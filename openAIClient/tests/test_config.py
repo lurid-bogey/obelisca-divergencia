@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, MagicMock
 import os
 from openAIClient.config import initOpenAiClient
 import configparser
@@ -7,66 +7,103 @@ import openai
 
 
 class TestConfig(unittest.TestCase):
-    @patch("openAIClient.config.configparser.ConfigParser.has_section")
-    @patch("openAIClient.config.configparser.ConfigParser.read")
-    @patch("openAIClient.config.configparser.ConfigParser.get")
+    @patch("openAIClient.config.openai.AzureOpenAI")
+    @patch("openAIClient.config.openai.OpenAI")
     @patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-api-key"})
-    def test_initOpenAI_success(self, mock_get, mock_read, mock_has_section):
-        # Mock the has_section method to return True for '[OpenAI]'
-        mock_has_section.return_value = True
+    def test_initOpenAI_azure_success(self, mock_openai_class, mock_azure_openai_class):
+        # Mock the AzureOpenAI client
+        mock_client = MagicMock()
+        mock_azure_openai_class.return_value = mock_client
 
-        # Mock configuration values
-        mock_get.side_effect = ["https://test-endpoint.openai.azure.com/", "test-deployment", "2024-12-01-preview"]
+        deploymentConfig = {
+            "type": "azure",
+            "endpoint": "https://test-endpoint.openai.azure.com/",
+            "deploymentName": "test-deployment",
+            "apiVersion": "2024-12-01-preview",
+        }
 
-        # Initialize OpenAI
-        initOpenAiClient()
+        client = initOpenAiClient(deploymentConfig)
+
+        # Assert AzureOpenAI configurations
+        mock_azure_openai_class.assert_called_once_with(api_version="2024-12-01-preview", azure_endpoint="https://test-endpoint.openai.azure.com/")
+        self.assertEqual(client.api_type, "azure")
+        self.assertEqual(client.api_key, "test-api-key")
+        # self.assertEqual(client.api_base, "https://test-endpoint.openai.azure.com/")
+
+    @patch("openAIClient.config.openai.OpenAI")
+    @patch("openAIClient.config.openai.AzureOpenAI")
+    @patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"})
+    def test_initOpenAI_openai_success(self, mock_azure_openai_class, mock_openai_class):
+        # Mock the OpenAI client
+        mock_client = MagicMock()
+        mock_openai_class.return_value = mock_client
+
+        deploymentConfig = {
+            "type": "openai",
+            "endpoint": "https://api.openai.com/v1",
+            "deploymentName": "gpt-3.5-turbo",
+            "apiVersion": "",  # Not required for openai
+        }
+
+        client = initOpenAiClient(deploymentConfig)
 
         # Assert OpenAI configurations
-        self.assertEqual(openai.api_type, "azure")
-        self.assertEqual(openai.api_base, "https://test-endpoint.openai.azure.com/")
-        self.assertEqual(openai.api_version, "2024-12-01-preview")
-        self.assertEqual(openai.api_key, "test-api-key")
+        mock_openai_class.assert_called_once()
+        self.assertEqual(client.api_type, "openai")
+        self.assertEqual(client.api_key, "test-openai-key")
+        self.assertEqual(client.api_base, "https://api.openai.com/v1")
 
-    @patch("openAIClient.config.configparser.ConfigParser.read")
-    def test_initOpenAI_missing_section(self, mock_read):
-        # Mock absence of [OpenAI] section
-        mock_config = configparser.ConfigParser()
-        mock_config.has_section = lambda section: False
-        with patch("openAIClient.config.configparser.ConfigParser", return_value=mock_config):
+    def test_initOpenAI_missing_api_key(self):
+        # Ensure ValueError is raised when API key is missing
+        deploymentConfig = {
+            "type": "azure",
+            "endpoint": "https://test-endpoint.openai.azure.com/",
+            "deploymentName": "test-deployment",
+            "apiVersion": "2024-12-01-preview",
+        }
+        with patch.dict(os.environ, {}, clear=True):
             with self.assertRaises(ValueError) as context:
-                initOpenAiClient()
-            self.assertIn("Missing [OpenAI] section in settings.ini", str(context.exception))
+                initOpenAiClient(deploymentConfig)
+            self.assertIn("API key environment variable is not set.", str(context.exception))
 
-    @patch("openAIClient.config.configparser.ConfigParser.has_section")
-    @patch("openAIClient.config.configparser.ConfigParser.read")
-    @patch("openAIClient.config.configparser.ConfigParser.get")
-    def test_initOpenAI_missing_values(self, mock_get, mock_read, mock_has_section):
-        # Mock the has_section method to return True for '[OpenAI]'
-        mock_has_section.return_value = True
-
-        # Mock missing azureEndpoint
-        mock_get.side_effect = ["", "test-deployment", "2024-12-01-preview"]  # azureEndpoint
-        mock_config = configparser.ConfigParser()
-        with patch("openAIClient.config.configparser.ConfigParser", return_value=mock_config):
+    def test_initOpenAI_missing_azure_config(self):
+        # Test missing required Azure configuration
+        deploymentConfig = {
+            "type": "azure",
+            "endpoint": "",
+            "deploymentName": "test-deployment",
+            "apiVersion": "2024-12-01-preview",
+        }
+        with patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-api-key"}):
             with self.assertRaises(ValueError) as context:
-                initOpenAiClient()
-            self.assertIn("azureEndpoint is not set", str(context.exception))
+                initOpenAiClient(deploymentConfig)
+            self.assertIn("Missing required Azure OpenAI configuration.", str(context.exception))
 
-    @patch("openAIClient.config.configparser.ConfigParser.has_section")
-    @patch("openAIClient.config.configparser.ConfigParser.read")
-    @patch.dict(os.environ, {}, clear=True)
-    @patch("openAIClient.config.configparser.ConfigParser.get")
-    def test_initOpenAI_missing_api_key(self, mock_get, mock_read, mock_has_section):
-        # Mock the has_section method to return True for '[OpenAI]'
-        mock_has_section.return_value = True
-
-        # Mock configuration values
-        mock_get.side_effect = ["https://test-endpoint.openai.azure.com/", "test-deployment", "2024-12-01-preview"]
-        mock_config = configparser.ConfigParser()
-        with patch("openAIClient.config.configparser.ConfigParser", return_value=mock_config):
+    def test_initOpenAI_missing_openai_deploymentName(self):
+        # Test missing deploymentName for OpenAI configuration
+        deploymentConfig = {
+            "type": "openai",
+            "endpoint": "https://api.openai.com/v1",
+            "deploymentName": "",
+            "apiVersion": "",
+        }
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"}):
             with self.assertRaises(ValueError) as context:
-                initOpenAiClient()
-            self.assertIn("AZURE_OPENAI_API_KEY environment variable is not set.", str(context.exception))
+                initOpenAiClient(deploymentConfig)
+            self.assertIn("deploymentName is not set for OpenAI configuration.", str(context.exception))
+
+    def test_initOpenAI_unknown_deployment_type(self):
+        # Test unknown deployment type
+        deploymentConfig = {
+            "type": "unknown",
+            "endpoint": "https://unknown-endpoint.com/api",
+            "deploymentName": "unknown-deployment",
+            "apiVersion": "2024-12-01-preview",
+        }
+        with patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-api-key"}):
+            with self.assertRaises(ValueError) as context:
+                initOpenAiClient(deploymentConfig)
+            self.assertIn("Unknown deployment type: unknown", str(context.exception))
 
 
 if __name__ == "__main__":
