@@ -175,6 +175,6 @@ cython_debug/
 
 patch_certifi.py
 conversations.db
-/openAIClient/build/build/
-/openAIClient/build/dist/obeliscaDivergencia/
-/openAIClient/build/dist/obeliscaDivergencia.exe
+/build/build/
+/build/dist/obeliscaDivergencia/
+/build/dist/obeliscaDivergencia.exe

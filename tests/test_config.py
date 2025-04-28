@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import os
-from openAIClient.config import initOpenAiClient
+from obeliscaDivergencia.config import initOpenAiClient
 import configparser
 import openai
 
 
 class TestConfig(unittest.TestCase):
-    @patch("openAIClient.config.openai.AzureOpenAI")
-    @patch("openAIClient.config.openai.OpenAI")
+    @patch("obeliscaDivergencia.config.openai.AzureOpenAI")
+    @patch("obeliscaDivergencia.config.openai.OpenAI")
     @patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-api-key"})
     def test_initOpenAI_azure_success(self, mock_openai_class, mock_azure_openai_class):
         # Mock the AzureOpenAI client
@@ -30,8 +30,8 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(client.api_key, "test-api-key")
         # self.assertEqual(client.api_base, "https://test-endpoint.openai.azure.com/")
 
-    @patch("openAIClient.config.openai.OpenAI")
-    @patch("openAIClient.config.openai.AzureOpenAI")
+    @patch("obeliscaDivergencia.config.openai.OpenAI")
+    @patch("obeliscaDivergencia.config.openai.AzureOpenAI")
     @patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"})
     def test_initOpenAI_openai_success(self, mock_azure_openai_class, mock_openai_class):
         # Mock the OpenAI client

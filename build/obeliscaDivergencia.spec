@@ -2,16 +2,13 @@ import sys
 import os
 from PyInstaller.utils.hooks import collect_data_files
 
-# Collect data files from tiktoken
-tiktokenDatas = collect_data_files('tiktoken')
-
 block_cipher = None
 
 a = Analysis(
-    ['..\\openAIClient\\main.py'],
+    ['..\\obeliscaDivergencia\\main.py'],
     pathex=[],
     binaries=[],
-    datas=[('../openAIClient/assets', 'openAIClient/assets')],
+    datas=[('../obeliscaDivergencia/assets', 'obeliscaDivergencia/assets')],
     hiddenimports=['tiktoken_ext', 'tiktoken_ext.openai_public'],
     hookspath=[],
     hooksconfig={},

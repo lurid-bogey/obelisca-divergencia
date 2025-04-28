@@ -1,5 +1,5 @@
 import unittest
-from openAIClient.utils.markdownUtils import convertMarkdownToHtml
+from obeliscaDivergencia.utils.markdownUtils import convertMarkdownToHtml
 
 
 class TestMarkdownUtils(unittest.TestCase):

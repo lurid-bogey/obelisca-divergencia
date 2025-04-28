@@ -1,10 +1,7 @@
-import sys
 import os
 import logging
 import datetime
-import configparser
 from typing import Optional, List, Dict
-from pathlib import Path
 
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -21,11 +18,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QByteArray, QSettings, Qt, QPoint
 from PySide6.QtGui import QIcon, QKeySequence, QAction
 
-from openAIClient.gui.Ui_mainWindow import Ui_MainWindow
-from openAIClient.chatTab import ChatTab
-from openAIClient.chatSession import ChatSession
-from openAIClient.utils.database import ConversationDatabase
-from openAIClient.config import getDatabasePath, resourcePath
+from obeliscaDivergencia.gui.Ui_mainWindow import Ui_MainWindow
+from obeliscaDivergencia.chatTab import ChatTab
+from obeliscaDivergencia.chatSession import ChatSession
+from obeliscaDivergencia.utils.database import ConversationDatabase
+from obeliscaDivergencia.config import getDatabasePath, resourcePath
 
 
 class MainWindow(QMainWindow):

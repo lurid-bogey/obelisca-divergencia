@@ -1,7 +1,7 @@
 import logging
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
-from openAIClient.chatSession import ChatSession
+from obeliscaDivergencia.chatSession import ChatSession
 
 
 class WorkerSignals(QObject):

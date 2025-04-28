@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QPushButton
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import QSize, Signal  # Import Signal
 
-from openAIClient.config import resourcePath
+from obeliscaDivergencia.config import resourcePath
 
 
 class CustomListItem(QWidget):

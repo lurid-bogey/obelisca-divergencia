@@ -2,8 +2,9 @@ import sys
 import logging
 
 from PySide6.QtWidgets import QApplication
-from openAIClient.mainWindow import MainWindow
-from openAIClient.loggingConfig import setupLogging
+
+from obeliscaDivergencia.mainWindow import MainWindow
+from obeliscaDivergencia.loggingConfig import setupLogging
 
 setupLogging()
 

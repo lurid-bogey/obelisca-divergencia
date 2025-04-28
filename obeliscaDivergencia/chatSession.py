@@ -5,8 +5,8 @@ from docx import Document
 from pdfminer.high_level import extract_text
 import tiktoken
 
-from openAIClient.config import initOpenAiClient
-from openAIClient.utils.database import ConversationDatabase
+from obeliscaDivergencia.config import initOpenAiClient
+from obeliscaDivergencia.utils.database import ConversationDatabase
 
 
 class ChatSession:

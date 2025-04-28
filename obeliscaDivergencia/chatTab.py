@@ -5,16 +5,16 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QWidget, QFileDialog, QMessageBox, QListWidgetItem, QApplication, QMainWindow
 from PySide6.QtGui import QIcon, QTextCursor
-from PySide6.QtCore import Signal, QThreadPool, QSettings
+from PySide6.QtCore import Signal, QThreadPool
 
-from openAIClient.worker import WorkerRunnable
-from openAIClient.gui.Ui_conversationWidget import Ui_conversationForm
-from openAIClient.gui.customTextEdit import SendableTextEdit
-from openAIClient.gui.customListItem import CustomListItem
-from openAIClient.utils.markdownUtils import convertMarkdownToHtml
-from openAIClient.utils.fileUtils import normalizeFilePath, isBinaryFile
-from openAIClient.chatSession import ChatSession
-from openAIClient.config import resourcePath
+from obeliscaDivergencia.worker import WorkerRunnable
+from obeliscaDivergencia.gui.Ui_conversationWidget import Ui_conversationForm
+from obeliscaDivergencia.gui.customTextEdit import SendableTextEdit
+from obeliscaDivergencia.gui.customListItem import CustomListItem
+from obeliscaDivergencia.utils.markdownUtils import convertMarkdownToHtml
+from obeliscaDivergencia.utils.fileUtils import normalizeFilePath, isBinaryFile
+from obeliscaDivergencia.chatSession import ChatSession
+from obeliscaDivergencia.config import resourcePath
 
 
 class ChatTab(QWidget):

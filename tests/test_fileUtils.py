@@ -1,6 +1,6 @@
 import unittest
 import os
-from openAIClient.utils.fileUtils import normalizeFilePath, isBinaryFile, getRelativePath
+from obeliscaDivergencia.utils.fileUtils import normalizeFilePath, isBinaryFile, getRelativePath
 
 
 class TestFileUtils(unittest.TestCase):
@@ -24,12 +24,12 @@ class TestFileUtils(unittest.TestCase):
 
     def test_getRelativePath(self):
         # Test relative path calculation
-        filePath = "/home/user/projects/openAIClient/openAIClient/chatSession.py"
-        baseDir = "/home/user/projects/openAIClient"
+        filePath = "/home/user/projects/obeliscaDivergencia/obeliscaDivergencia/chatSession.py"
+        baseDir = "/home/user/projects/obeliscaDivergencia"
         relative = getRelativePath(filePath, baseDir)
 
         # Normalize both paths
-        normalized_expected = os.path.normpath("openAIClient/chatSession.py")
+        normalized_expected = os.path.normpath("obeliscaDivergencia/chatSession.py")
         normalized_actual = os.path.normpath(relative)
 
         self.assertEqual(normalized_actual, normalized_expected)
