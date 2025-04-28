@@ -1,7 +1,7 @@
 import setuptools
 from setuptools import setup, find_packages
 
-with open("openAIClient/requirements.txt", "r") as fh:
+with open("requirements.txt", "r") as fh:
     requirements = fh.read().splitlines()
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -19,12 +19,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        "openAIClient": [
-            "assets/",
-            "gui/",
-            "utils/",
-            "tests/"
-        ],
+        "obeliscaDivergencia": ["assets/", "gui/", "utils/", "tests/"],
     },
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -39,22 +34,16 @@ setup(
         "Topic :: Software Development :: Build Tools",
         "Topic :: Utilities",
     ],
-    python_requires='>=3.10',
+    python_requires=">=3.10",
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "obeliscaDivergencia = openAIClient.main:main",
+            "obeliscaDivergencia = obeliscaDivergencia.main:main",
         ],
     },
     scripts=[
-        "openAIClient/build/build.bat",
+        "obeliscaDivergencia/build/build.bat",
     ],
     license="GNU General Public License v3.0",
-    keywords=[
-        "Azure",
-        "OpenAI",
-        "Client",
-        "Chat",
-        "GUI"
-    ],
+    keywords=["Azure", "OpenAI", "Client", "Chat", "GUI"],
 )

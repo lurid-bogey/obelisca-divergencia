@@ -5,23 +5,41 @@ from docx import Document
 from pdfminer.high_level import extract_text
 import tiktoken
 
-from openAIClient.config import initOpenAiClient
-from openAIClient.utils.database import ConversationDatabase
+from obeliscaDivergencia.config import initOpenAiClient
+from obeliscaDivergencia.utils.database import ConversationDatabase
 
 
 class ChatSession:
     FOLDER_BLACKLIST = (".git", ".github", ".svn", ".idea", ".vscode", "__pycache__")
     # List of file extensions that are considered binary.
     BINARY_EXTENSIONS = (
-        '.png', '.jpg', '.jpeg', '.gif', '.bmp',
-        '.zip', '.tar', '.gz', '.url', '.db', '.sqlite',
-        '.exe', '.dll', '.pyd',
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".bmp",
+        ".zip",
+        ".tar",
+        ".gz",
+        ".url",
+        ".db",
+        ".sqlite",
+        ".exe",
+        ".dll",
+        ".pyd",
     )
 
     FILE_MARKER_START = "<|file|>"
     FILE_MARKER_END = "<|/file|>"
 
-    def __init__(self, systemPrompt: str, deploymentConfig: Dict[str, str], conversationId: Optional[int] = None, db: Optional[ConversationDatabase] = None, maxContextTokens: int = 100000):
+    def __init__(
+        self,
+        systemPrompt: str,
+        deploymentConfig: Dict[str, str],
+        conversationId: Optional[int] = None,
+        db: Optional[ConversationDatabase] = None,
+        maxContextTokens: int = 100000,
+    ):
         """
         Initializes the conversation with the system prompt or existing history.
 
@@ -62,7 +80,7 @@ class ChatSession:
     def extractTextFromDocx(self, filePath: str) -> str:
         try:
             doc = Document(filePath)
-            return '\n'.join([para.text for para in doc.paragraphs])
+            return "\n".join([para.text for para in doc.paragraphs])
         except Exception as e:
             logging.error(f"Error extracting text from DOCX: {e}")
             return ""
@@ -93,10 +111,10 @@ class ChatSession:
             if lowerFilePath.endswith(self.BINARY_EXTENSIONS):
                 logging.info("Skipping binary file: %s", filePath)
                 return ""
-            elif lowerFilePath.endswith('.docx'):
+            elif lowerFilePath.endswith(".docx"):
                 logging.info("Processing DOCX file: %s", filePath)
                 fileContent = self.extractTextFromDocx(filePath)
-            elif lowerFilePath.endswith('.pdf'):
+            elif lowerFilePath.endswith(".pdf"):
                 logging.info("Processing PDF file: %s", filePath)
                 fileContent = self.extractTextFromPdf(filePath)
             else:
@@ -187,7 +205,7 @@ class ChatSession:
             attachmentContent = self.readFilesContent(filePathsStr)
 
         redactedUserMessage = userText.strip()  # The message that gets saved in the DB. Does not include file content.
-        fullUserMessage = userText.strip()      # The message that gets sent to OpenAI. Includes file content.
+        fullUserMessage = userText.strip()  # The message that gets sent to OpenAI. Includes file content.
         if attachmentContent:
             fullUserMessage += "\n" + attachmentContent.strip()
 
@@ -262,15 +280,10 @@ class ChatSession:
             Optional[str]: The summary text or None if generation fails.
         """
         try:
-            summaryPrompt = (
-                "Summarize the following conversation in seven words or less:\n"
-                f"{self.getConversationText()}"
-            )
+            summaryPrompt = "Summarize the following conversation in seven words or less:\n" f"{self.getConversationText()}"
             response = self.client.chat.completions.create(
                 model=self.deploymentName,
-                messages=[
-                    {"role": "user", "content": summaryPrompt}
-                ],
+                messages=[{"role": "user", "content": summaryPrompt}],
             )
             summary = response.choices[0].message.content.strip()
             return summary

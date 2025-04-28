@@ -1,5 +1,5 @@
 import unittest
-from openAIClient.utils.markdownUtils import convertMarkdownToHtml
+from obeliscaDivergencia.utils.markdownUtils import convertMarkdownToHtml
 
 
 class TestMarkdownUtils(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestMarkdownUtils(unittest.TestCase):
         html = convertMarkdownToHtml(markdown_text)
         # self.assertIn("<code class=\"language-python\">", html)
         self.assertIn(".codehilite", html)
-        self.assertIn("class=\"codehilite\"", html)
+        self.assertIn('class="codehilite"', html)
 
     def test_convertMarkdownToHtml_empty(self):
         # Test empty markdown conversion
@@ -40,5 +40,5 @@ class TestMarkdownUtils(unittest.TestCase):
         # self.assertEqual(stripped_html, "")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

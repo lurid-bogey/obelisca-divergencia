@@ -2,6 +2,9 @@
 
 Obelisca Divergencia is yet another Azure OpenAI client.
 
+![Screenshot](obeliscaDivergencia/assets/screenshot.png "screenshot")
+
+
 ### But why?
 
 Well... Azure OpenAI changed their API for the new reasoning models. The client that 
@@ -43,13 +46,12 @@ the Azure deployment.
 mkdir obelisca
 cd obelisca
 git clone git@github.com:lurid-bogey/obelisca-divergencia.git .
-cd openAIClient
 ```
 
 ### Run the project
 ```
-python -m venv env
-env\Scripts\activate.bat
+python -m venv venv
+venv\Scripts\activate.bat
 pip install -r requirements.txt
-python -m openAIClient
+python -m obeliscaDivergencia
 ```

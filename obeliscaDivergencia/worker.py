@@ -1,7 +1,7 @@
 import logging
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
-from openAIClient.chatSession import ChatSession
+from obeliscaDivergencia.chatSession import ChatSession
 
 
 class WorkerSignals(QObject):
@@ -13,6 +13,7 @@ class WorkerRunnable(QRunnable):
     """
     Worker Runnable for executing the API call in a background thread.
     """
+
     def __init__(self, chatSession: ChatSession, userText: str, filePathList: list):
         super().__init__()
         self.chatSession = chatSession

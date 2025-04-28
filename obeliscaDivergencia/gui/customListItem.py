@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QPushButton
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import QSize, Signal  # Import Signal
 
-from openAIClient.config import resourcePath
+from obeliscaDivergencia.config import resourcePath
 
 
 class CustomListItem(QWidget):
@@ -23,13 +23,9 @@ class CustomListItem(QWidget):
         self.rightIconButton.setFlat(True)
 
         # Set the pixmaps/icons for the icons.
-        self.leftIconLabel.setPixmap(
-            QPixmap(resourcePath("assets/new-file.png", forcedPath=True)).scaled(16, 16)
-        )
+        self.leftIconLabel.setPixmap(QPixmap(resourcePath("assets/new-file.png", forcedPath=True)).scaled(16, 16))
         # Instead of setting the pixmap on a label, set an icon on the push button.
-        self.rightIconButton.setIcon(
-            QIcon(resourcePath("assets/delete-red.png", forcedPath=True))
-        )
+        self.rightIconButton.setIcon(QIcon(resourcePath("assets/delete-red.png", forcedPath=True)))
         self.rightIconButton.setIconSize(QSize(8, 8))
 
         # Set up the horizontal layout.

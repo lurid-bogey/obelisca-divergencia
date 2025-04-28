@@ -2,7 +2,7 @@ import markdown
 from pygments.formatters import HtmlFormatter
 
 # Generate styles once.
-pygmentsCss = HtmlFormatter().get_style_defs('.codehilite')
+pygmentsCss = HtmlFormatter().get_style_defs(".codehilite")
 additionalCss = """
     .codehilite {
         font-family: 'Consolas', monospace;
@@ -22,15 +22,15 @@ style = f"""
 
 # Create a global Markdown instance so that the extensions are loaded only once.
 mdConverter = markdown.Markdown(
-    extensions=['fenced_code', 'codehilite'],
+    extensions=["fenced_code", "codehilite"],
     extension_configs={
-        'codehilite': {
-            'linenums': False,
-            'guess_lang': False,
-            'pygments_style': 'monokai',
-            'noclasses': False,
+        "codehilite": {
+            "linenums": False,
+            "guess_lang": False,
+            "pygments_style": "monokai",
+            "noclasses": False,
         }
-    }
+    },
 )
 
 

@@ -1,0 +1,3 @@
+
+
+pyinstaller obeliscaDivergencia.spec

@@ -25,7 +25,8 @@ class ConversationDatabase:
         Creates the conversations table if it does not already exist.
         """
         with self.conn:
-            self.conn.execute('''
+            self.conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS conversations (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT NOT NULL,
@@ -34,16 +35,20 @@ class ConversationDatabase:
                     conversation_history TEXT NOT NULL,
                     tokens INTEGER DEFAULT 0
                 )
-            ''')
+            """
+            )
 
-            self.conn.execute('''
+            self.conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS files (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_path TEXT NOT NULL UNIQUE 
                 )
-            ''')
+            """
+            )
 
-            self.conn.execute('''
+            self.conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS conversation_attachements (
                     conversation_id INTEGER,
                     file_id INTEGER,
@@ -51,7 +56,8 @@ class ConversationDatabase:
                     FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
                     FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
                 )
-            ''')
+            """
+            )
 
     def addTokensColumnIfNotExists(self):
         """
@@ -60,7 +66,7 @@ class ConversationDatabase:
         try:
             cursor = self.conn.execute("PRAGMA table_info(conversations)")
             columns = [row[1].lower() for row in cursor.fetchall()]
-            if 'tokens' not in columns:
+            if "tokens" not in columns:
                 with self.conn:
                     self.conn.execute("ALTER TABLE conversations ADD COLUMN tokens INTEGER DEFAULT 0")
                     logging.info("Added 'tokens' column to 'conversations' table.")
@@ -87,10 +93,13 @@ class ConversationDatabase:
         conversation_json = json.dumps(conversationHistory)
         try:
             with self.conn:
-                cursor = self.conn.execute('''
+                cursor = self.conn.execute(
+                    """
                     INSERT INTO conversations (title, deployment_name, created_at, conversation_history, tokens)
                     VALUES (?, ?, ?, ?, ?)
-                ''', (title, deploymentName, created_at, conversation_json, tokens))
+                """,
+                    (title, deploymentName, created_at, conversation_json, tokens),
+                )
                 logging.info(f"Inserted conversation '{title}' with ID {cursor.lastrowid}")
                 return cursor.lastrowid
         except sqlite3.Error as e:
@@ -107,9 +116,11 @@ class ConversationDatabase:
         Returns:
             List[Tuple[int, str, str, str, str, int]]: A list of tuples containing conversation details.
         """
-        cursor = self.conn.execute('''
+        cursor = self.conn.execute(
+            """
             SELECT id, title, deployment_name, created_at, conversation_history, tokens FROM conversations ORDER BY created_at DESC
-        ''')
+        """
+        )
         return cursor.fetchall()
 
     def getConversationById(self, conversationId: int) -> Optional[dict]:
@@ -122,10 +133,13 @@ class ConversationDatabase:
         Returns:
             Optional[dict]: A dictionary containing conversation details or None if not found.
         """
-        cursor = self.conn.execute('''
+        cursor = self.conn.execute(
+            """
             SELECT id, title, deployment_name, created_at, conversation_history, tokens FROM conversations
             WHERE id = ?
-        ''', (conversationId,))
+        """,
+            (conversationId,),
+        )
         row = cursor.fetchone()
         if row:
             return {
@@ -134,7 +148,7 @@ class ConversationDatabase:
                 "deployment_name": row[2],
                 "created_at": row[3],
                 "conversation_history": json.loads(row[4]),
-                "tokens": row[5]
+                "tokens": row[5],
             }
         else:
             return None
@@ -147,9 +161,12 @@ class ConversationDatabase:
             conversationId (int): The ID of the conversation to delete.
         """
         with self.conn:
-            self.conn.execute('''
+            self.conn.execute(
+                """
                 DELETE FROM conversations WHERE id = ?
-            ''', (conversationId,))
+            """,
+                (conversationId,),
+            )
         logging.info(f"Deleted conversation ID {conversationId} from the database.")
         self.deleteOrphanedFiles()
 
@@ -159,12 +176,14 @@ class ConversationDatabase:
         """
         try:
             with self.conn:
-                cursor = self.conn.execute('''
+                cursor = self.conn.execute(
+                    """
                     DELETE FROM files
                     WHERE id NOT IN (
                         SELECT DISTINCT file_id FROM conversation_attachements
                     )
-                ''')
+                """
+                )
                 deleted_files_count = cursor.rowcount
                 logging.info(f"Deleted {deleted_files_count} orphaned files from the database.")
         except sqlite3.Error as e:
@@ -180,11 +199,14 @@ class ConversationDatabase:
         """
         conversation_json = json.dumps(conversationHistory)
         with self.conn:
-            self.conn.execute('''
+            self.conn.execute(
+                """
                 UPDATE conversations
                 SET conversation_history = ?
                 WHERE id = ?
-            ''', (conversation_json, conversationId))
+            """,
+                (conversation_json, conversationId),
+            )
         logging.info(f"Updated conversation history for ID {conversationId}.")
 
     def updateConversationTitle(self, conversationId: int, newTitle: str):
@@ -196,11 +218,14 @@ class ConversationDatabase:
             newTitle (str): The new title for the conversation.
         """
         with self.conn:
-            self.conn.execute('''
+            self.conn.execute(
+                """
                 UPDATE conversations
                 SET title = ?
                 WHERE id = ?
-            ''', (newTitle, conversationId))
+            """,
+                (newTitle, conversationId),
+            )
         logging.info(f"Updated title for conversation ID {conversationId} to '{newTitle}'.")
 
     def updateConversationTokens(self, conversationId: int, tokens: int):
@@ -213,11 +238,14 @@ class ConversationDatabase:
         """
         try:
             with self.conn:
-                self.conn.execute('''
+                self.conn.execute(
+                    """
                     UPDATE conversations
                     SET tokens = ?
                     WHERE id = ?
-                ''', (tokens, conversationId))
+                """,
+                    (tokens, conversationId),
+                )
                 logging.info(f"Updated tokens for conversation ID {conversationId} to {tokens}.")
         except sqlite3.Error as e:
             logging.error(f"Failed to update tokens for conversation ID {conversationId}: {e}")
@@ -232,9 +260,12 @@ class ConversationDatabase:
         Returns:
             Optional[int]: The number of tokens, or None if not found.
         """
-        cursor = self.conn.execute('''
+        cursor = self.conn.execute(
+            """
             SELECT tokens FROM conversations WHERE id = ?
-        ''', (conversationId,))
+        """,
+            (conversationId,),
+        )
         row = cursor.fetchone()
         if row:
             return row[0]
@@ -249,14 +280,20 @@ class ConversationDatabase:
         try:
             with self.conn:
                 # Insert the file path if it does not exist.
-                self.conn.execute('''
+                self.conn.execute(
+                    """
                     INSERT OR IGNORE INTO files (file_path)
                     VALUES (?)
-                ''', (filePath,))
+                """,
+                    (filePath,),
+                )
                 # Retrieve the id whether newly inserted or already present.
-                cursor = self.conn.execute('''
+                cursor = self.conn.execute(
+                    """
                     SELECT id FROM files WHERE file_path = ?
-                ''', (filePath,))
+                """,
+                    (filePath,),
+                )
                 row = cursor.fetchone()
                 if row:
                     return row[0]
@@ -271,10 +308,13 @@ class ConversationDatabase:
         """
         try:
             with self.conn:
-                self.conn.execute('''
+                self.conn.execute(
+                    """
                     INSERT OR IGNORE INTO conversation_attachements (conversation_id, file_id)
                     VALUES (?, ?)
-                ''', (conversationId, fileId))
+                """,
+                    (conversationId, fileId),
+                )
         except Exception as ex:
             logging.error("Error recording conversation attachment: %s", ex)
 
