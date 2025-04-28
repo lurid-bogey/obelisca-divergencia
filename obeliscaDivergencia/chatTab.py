@@ -3,14 +3,15 @@ import logging
 import datetime
 from pathlib import Path
 
-from PySide6.QtWidgets import QWidget, QFileDialog, QMessageBox, QListWidgetItem, QApplication, QMainWindow
+from PySide6.QtWidgets import QWidget, QFileDialog, QMessageBox, QListWidgetItem, QApplication, QMainWindow, QListView, QSizePolicy, QAbstractItemView
 from PySide6.QtGui import QIcon, QTextCursor
-from PySide6.QtCore import Signal, QThreadPool
+from PySide6.QtCore import Signal, QThreadPool, QSize
 
 from obeliscaDivergencia.worker import WorkerRunnable
 from obeliscaDivergencia.gui.Ui_conversationWidget import Ui_conversationForm
 from obeliscaDivergencia.gui.customTextEdit import SendableTextEdit
 from obeliscaDivergencia.gui.customListItem import CustomListItem
+from obeliscaDivergencia.gui.customListWidget import DroppableListWidget
 from obeliscaDivergencia.utils.markdownUtils import convertMarkdownToHtml
 from obeliscaDivergencia.utils.fileUtils import normalizeFilePath, isBinaryFile
 from obeliscaDivergencia.chatSession import ChatSession
@@ -58,7 +59,6 @@ class ChatTab(QWidget):
         self.ui.attachButton.setMinimumWidth(135)
         self.ui.sendButton.setMinimumWidth(135)
 
-        self.ui.attachedFilesList.setStyleSheet("background-color: #fafafa;")
         self.ui.sendButton.setStyleSheet("text-align: left; padding-left: 10px; background-color: #eef2ff;")
         self.ui.busyIndicator.setStyleSheet("background-color: #eef2ff; color: blue; font-weight: bold;")
 
@@ -66,6 +66,28 @@ class ChatTab(QWidget):
         self.ui.attachButton.setIcon(QIcon(resourcePath("assets/file-add.png", forcedPath=True)))
         self.ui.attachDirectoryButton.setIcon(QIcon(resourcePath("assets/folder-add.png", forcedPath=True)))
         self.ui.sendButton.setIcon(QIcon(resourcePath("assets/upload-circle.png", forcedPath=True)))
+
+        # Replace the QListWidget with DroppableListWidget
+        self.ui.attachedFilesList.setParent(None)  # Remove the existing widget from layout
+        self.droppableAttachedFilesList = DroppableListWidget(parent=self, binaryExtensions=ChatSession.BINARY_EXTENSIONS, folderBalcklist=ChatSession.FOLDER_BLACKLIST)
+        layout = self.ui.fileLayout
+        layout.insertWidget(0, self.droppableAttachedFilesList)
+        self.ui.attachedFilesList = self.droppableAttachedFilesList  # Update the reference
+        self.ui.attachedFilesList.setStyleSheet("background-color: #fafafa;")
+        self.ui.attachedFilesList.setObjectName(u"attachedFilesList")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.ui.attachedFilesList.sizePolicy().hasHeightForWidth())
+        self.ui.attachedFilesList.setSizePolicy(sizePolicy)
+        self.ui.attachedFilesList.setMinimumSize(QSize(0, 40))
+        self.ui.attachedFilesList.setMaximumSize(QSize(16777215, 80))
+        self.ui.attachedFilesList.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.ui.attachedFilesList.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.ui.attachedFilesList.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.ui.attachedFilesList.setFlow(QListView.Flow.LeftToRight)
+        self.ui.attachedFilesList.setProperty(u"isWrapping", True)
+        self.ui.attachedFilesList.setResizeMode(QListView.ResizeMode.Adjust)
 
         # Connect signals.
         self.ui.attachButton.clicked.connect(self.onAttachFiles)
@@ -76,6 +98,57 @@ class ChatTab(QWidget):
         # If there's existing conversation history, load it into the display
         self.loadExistingConversation()
         # Update the UI list widget with any loaded attachments.
+        self.updateAttachedFilesList()
+
+    def attachFiles(self, filePaths: list):
+        """
+        Handles files/folders dropped into the attachedFilesList.
+
+        Args:
+            filePaths (list): List of file paths to attach.
+        """
+        if not filePaths:
+            return
+
+        newFiles = []
+        for filePath in filePaths:
+            normalizedPath = normalizeFilePath(filePath)
+            if normalizedPath in self.attachedFiles:
+                logging.info("File already attached: %s", normalizedPath)
+                continue
+            if os.path.isdir(normalizedPath):
+                # Handle directory attachment
+                for root, dirs, files in os.walk(normalizedPath):
+                    # Filter out blacklisted directories.
+                    dirs[:] = [dirName for dirName in dirs if dirName not in self.chatSession.FOLDER_BLACKLIST]
+                    for fileName in files:
+                        fullPath = os.path.join(root, fileName)
+                        if isBinaryFile(fullPath, self.chatSession.BINARY_EXTENSIONS):
+                            logging.info("Skipping binary file: %s", fullPath)
+                            continue
+                        normalizedFullPath = normalizeFilePath(fullPath)
+                        if normalizedFullPath not in self.attachedFiles:
+                            newFiles.append(normalizedFullPath)
+            else:
+                if isBinaryFile(normalizedPath, self.chatSession.BINARY_EXTENSIONS):
+                    logging.info("Skipping binary file: %s", normalizedPath)
+                    continue
+                newFiles.append(normalizedPath)
+
+        if not newFiles:
+            return
+
+        # Append the new files and update the database.
+        self.attachedFiles.extend(newFiles)
+
+        # Update the database
+        parent = self.parentWidget()
+        while parent and not hasattr(parent, "conversationDb"):
+            parent = parent.parentWidget()
+        if parent and hasattr(parent, "conversationDb"):
+            parent.conversationDb.recordAttachmentsForConversation(self.conversationId, newFiles)
+
+        # Update the UI list widget.
         self.updateAttachedFilesList()
 
     def loadAttachedFilesFromDatabase(self):
