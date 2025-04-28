@@ -15,13 +15,14 @@ from PySide6.QtWidgets import (
     QInputDialog,
     QAbstractItemView,
 )
-from PySide6.QtCore import QByteArray, QSettings, Qt, QPoint
+from PySide6.QtCore import QByteArray, QSettings, Qt, QPoint, QThreadPool
 from PySide6.QtGui import QIcon, QKeySequence, QAction
 
 from obeliscaDivergencia.gui.Ui_mainWindow import Ui_MainWindow
 from obeliscaDivergencia.chatTab import ChatTab
 from obeliscaDivergencia.chatSession import ChatSession
 from obeliscaDivergencia.utils.database import ConversationDatabase
+from obeliscaDivergencia.utils.vacuumWorker import VacuumWorker, VacuumWorkerSignals
 from obeliscaDivergencia.config import getDatabasePath, resourcePath
 
 
@@ -116,6 +117,8 @@ class MainWindow(QMainWindow):
         dbPath = getDatabasePath()
         self.conversationDb = ConversationDatabase(dbPath)
         logging.info(f"Initialized ConversationDatabase at {dbPath}")
+        # Start the database vacuum in the background
+        self.startDatabaseVacuum(dbPath)
 
         # Clear any pre-existing tabs.
         self.ui.tabWidget.clear()
@@ -760,3 +763,37 @@ class MainWindow(QMainWindow):
         # Update the database with the new title
         self.conversationDb.updateConversationTitle(conversationId, newTitle)
         logging.info(f"User updated conversation ID {conversationId} title to '{newTitle}'.")
+
+    def startDatabaseVacuum(self, dbPath: str):
+        """
+        Starts a background thread to vacuum the SQLite database.
+
+        Args:
+            dbPath (str): Path to the SQLite database file.
+        """
+        threadPool = QThreadPool.globalInstance()
+        vacuumWorker = VacuumWorker(dbPath)
+        vacuumWorker.signals.finished.connect(self.onVacuumFinished)
+        vacuumWorker.signals.error.connect(self.onVacuumError)
+        threadPool.start(vacuumWorker)
+        logging.info("VacuumWorker has been started.")
+
+    def onVacuumFinished(self):
+        """
+        Slot to handle the completion of the vacuum operation.
+        """
+        logging.info("Database vacuum operation completed successfully.")
+
+    def onVacuumError(self, errorMessage: str):
+        """
+        Slot to handle any errors that occur during the vacuum operation.
+
+        Args:
+            errorMessage (str): The error message emitted by the VacuumWorker.
+        """
+        logging.error(f"Database vacuum encountered an error: {errorMessage}")
+        QMessageBox.critical(
+            self,
+            "Database Vacuum Error",
+            f"An error occurred while vacuuming the database:\n{errorMessage}",
+        )
