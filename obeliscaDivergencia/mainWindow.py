@@ -474,6 +474,9 @@ class MainWindow(QMainWindow):
         Args:
             item (QListWidgetItem): The selected QListWidgetItem representing a conversation.
         """
+        self.setEnabled(False)
+        QApplication.processEvents()
+
         conversationId = item.data(Qt.ItemDataRole.UserRole)
         conversation = self.conversationDb.getConversationById(conversationId)
         if conversation:
@@ -484,6 +487,8 @@ class MainWindow(QMainWindow):
                 if tabIndex != -1:
                     self.ui.tabWidget.setCurrentIndex(tabIndex)
                     logging.info(f"Switched to existing tab for conversation ID {conversationId}.")
+                    self.setEnabled(True)
+                    QApplication.processEvents()
                     return  # Early exit since the tab is already open
 
             # Initialize ChatSession with existing history and correct deployment name
@@ -495,6 +500,8 @@ class MainWindow(QMainWindow):
             if not deploymentConfig:
                 QMessageBox.warning(self, "Deployment Not Found", f"No deployment configuration found for '{deploymentName}'.")
                 logging.error(f"No deployment configuration found for '{deploymentName}'.")
+                self.setEnabled(True)
+                QApplication.processEvents()
                 return
 
             chatSession = ChatSession(
@@ -510,6 +517,9 @@ class MainWindow(QMainWindow):
             self.createNewChatTab(chatSession, conversationId)
         else:
             QMessageBox.warning(self, "Error", "Selected conversation could not be loaded.")
+
+        self.setEnabled(True)
+        QApplication.processEvents()
 
     def deleteSelectedChat(self):
         """
