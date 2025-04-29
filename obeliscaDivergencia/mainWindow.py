@@ -234,6 +234,9 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Summarize Conversation", "Please select a single conversation to summarize.")
             return
 
+        self.setEnabled(False)
+        QApplication.processEvents()
+
         item = selectedItems[0]
         conversationId = item.data(Qt.ItemDataRole.UserRole)
 
@@ -246,6 +249,8 @@ class MainWindow(QMainWindow):
                 self.renameSelectedConversation(summary)
                 logging.info(f"Generated summary for conversation ID {conversationId}.")
             else:
+                self.setEnabled(True)
+                QApplication.processEvents()
                 QMessageBox.warning(self, "Summarize Conversation", "Failed to generate summary.")
                 logging.warning(f"Failed to generate summary for conversation ID {conversationId}.")
         else:
@@ -258,6 +263,8 @@ class MainWindow(QMainWindow):
                 deploymentConfig = next((d for d in deployments if d["deploymentName"] == deploymentName), None)
 
                 if not deploymentConfig:
+                    self.setEnabled(True)
+                    QApplication.processEvents()
                     QMessageBox.warning(
                         self, "Deployment Not Found", f"No deployment configuration found for '{deploymentName}'."
                     )
@@ -277,10 +284,17 @@ class MainWindow(QMainWindow):
                     self.renameSelectedConversation(summary)
                     logging.info(f"Generated summary for conversation ID {conversationId}.")
                 else:
+                    self.setEnabled(True)
+                    QApplication.processEvents()
                     QMessageBox.warning(self, "Summarize Conversation", "Failed to generate summary.")
                     logging.warning(f"Failed to generate summary for conversation ID {conversationId}.")
             else:
+                self.setEnabled(True)
+                QApplication.processEvents()
                 QMessageBox.warning(self, "Summarize Conversation", "Selected conversation could not be loaded.")
+
+        self.setEnabled(True)
+        QApplication.processEvents()
 
     def getDeploymentConfigs(self) -> List[Dict[str, str]]:
         """
@@ -347,7 +361,7 @@ class MainWindow(QMainWindow):
         conversations = self.conversationDb.getAllConversations()
         for convo in conversations:
             convoId, title, deploymentName, createdAt, conversationHistory, tokens = convo
-            itemText = f"{title} (Tokens: {tokens})"
+            itemText = f"{title}"
             item = QListWidgetItem(itemText)
             item.setData(Qt.ItemDataRole.UserRole, convoId)  # Store the conversation ID
 
