@@ -516,7 +516,7 @@ class ChatTab(QWidget):
         # Format the timestamp as desired
         formattedTimestamp = localTime.strftime("%Y-%m-%d %H:%M:%S %z")
 
-        fullTextWithTimestamp = f"{text}\n<span style='font-size: small; color: gray;'>{formattedTimestamp}</span>"
+        fullTextWithTimestamp = f"{text}<br><span style='font-size: small; color: gray;'>{formattedTimestamp}</span>"
 
         fullHtml = convertMarkdownToHtml(fullTextWithTimestamp)
         newContent = f"""
