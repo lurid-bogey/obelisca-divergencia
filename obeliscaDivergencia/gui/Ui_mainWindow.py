@@ -31,6 +31,8 @@ class Ui_MainWindow(object):
         MainWindow.setWindowIcon(icon)
         self.actionExit = QAction(MainWindow)
         self.actionExit.setObjectName(u"actionExit")
+        self.actionSettings = QAction(MainWindow)
+        self.actionSettings.setObjectName(u"actionSettings")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
@@ -72,6 +74,8 @@ class Ui_MainWindow(object):
         self.menuBar.setGeometry(QRect(0, 0, 607, 22))
         self.menuFile = QMenu(self.menuBar)
         self.menuFile.setObjectName(u"menuFile")
+        self.menuSettings = QMenu(self.menuBar)
+        self.menuSettings.setObjectName(u"menuSettings")
         MainWindow.setMenuBar(self.menuBar)
         self.statusBar = QStatusBar(MainWindow)
         self.statusBar.setObjectName(u"statusBar")
@@ -81,7 +85,9 @@ class Ui_MainWindow(object):
         MainWindow.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolBar)
 
         self.menuBar.addAction(self.menuFile.menuAction())
+        self.menuBar.addAction(self.menuSettings.menuAction())
         self.menuFile.addAction(self.actionExit)
+        self.menuSettings.addAction(self.actionSettings)
 
         self.retranslateUi(MainWindow)
 
@@ -91,9 +97,11 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Azure OpenAI Chat GUI", None))
         self.actionExit.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
+        self.actionSettings.setText(QCoreApplication.translate("MainWindow", u"Settings", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Conversations:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.chatTab), QCoreApplication.translate("MainWindow", u"Chat", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
+        self.menuSettings.setTitle(QCoreApplication.translate("MainWindow", u"Settings", None))
         self.toolBar.setWindowTitle(QCoreApplication.translate("MainWindow", u"toolBar", None))
     # retranslateUi
 

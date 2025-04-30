@@ -13,16 +13,19 @@ from PySide6.QtWidgets import (
     QListWidget,
     QMenu,
     QInputDialog,
+    QDialog,
     QAbstractItemView,
 )
-from PySide6.QtCore import QByteArray, QSettings, Qt, QPoint, QThreadPool
+from PySide6.QtCore import QByteArray, QSettings, Qt, QPoint, QThreadPool, Signal
 from PySide6.QtGui import QIcon, QKeySequence, QAction
 
 from obeliscaDivergencia.gui.Ui_mainWindow import Ui_MainWindow
+from obeliscaDivergencia.gui.Ui_settings import Ui_settingsDialog
 from obeliscaDivergencia.chatTab import ChatTab
 from obeliscaDivergencia.chatSession import ChatSession
 from obeliscaDivergencia.utils.database import ConversationDatabase
 from obeliscaDivergencia.utils.vacuumWorker import VacuumWorker, VacuumWorkerSignals
+from obeliscaDivergencia.utils.themes import lightPalette, darkPalette
 from obeliscaDivergencia.config import getDatabasePath, resourcePath
 
 
@@ -31,9 +34,11 @@ class MainWindow(QMainWindow):
     Main application window for the Azure OpenAI Chat GUI.
     Manages multiple ChatTab instances and integrates conversation management via SQLite.
     """
+    themeChanged = Signal(bool)
 
-    def __init__(self, systemPrompt: str):
+    def __init__(self, app: QApplication, systemPrompt: str):
         super().__init__()
+        self.app = app
         self.systemPrompt = systemPrompt
 
         self.setWindowTitle("Azure OpenAI Chat GUI")
@@ -56,6 +61,12 @@ class MainWindow(QMainWindow):
         """
         )
 
+        # Settings
+        self.settingsDialog = QDialog(self)
+        self.settingsUi = Ui_settingsDialog()
+        self.settingsUi.setupUi(self.settingsDialog)
+        self.settingsUi.buttonBox.accepted.connect(self.onSettingsDialogOk)
+
         # Enable custom context menu
         self.ui.conversationsList.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.conversationsList.customContextMenuRequested.connect(self.onConversationsListContextMenu)
@@ -63,6 +74,8 @@ class MainWindow(QMainWindow):
         # Configure the File menu.
         self.ui.actionExit.setIcon(QIcon(resourcePath("assets/delete-red.png", forcedPath=True)))
         self.ui.actionExit.triggered.connect(QApplication.quit)
+        self.ui.actionSettings.setIcon(QIcon(resourcePath("assets/cog.png", forcedPath=True)))
+        self.ui.actionSettings.triggered.connect(self.onSettingsShow)
 
         # Create new chat action.
         self.actionNewChat = QAction("New Chat", self)
@@ -109,6 +122,10 @@ class MainWindow(QMainWindow):
         if index != -1:
             self.deploymentComboBox.setCurrentIndex(index)
 
+        # Dark mode
+        self.useDarkMode = self.settings.value("App/useDarkMode", False, type=bool)
+        self.settingsUi.cb_darkMode.checkStateChanged.connect(self.setDarkMode)
+
         # Token Display Labels
         self.totalTokensLabel = QLabel("Tokens: <b>0</b>")
         self.ui.statusBar.addPermanentWidget(self.totalTokensLabel)
@@ -142,6 +159,14 @@ class MainWindow(QMainWindow):
         self.createNewChatTab()
         self.populateConversationsList()
         self.setWindowIcon(QIcon(resourcePath("assets/blah.png", forcedPath=True)))
+
+    def onSettingsShow(self):
+        self.settingsDialog.show()
+
+    def onSettingsDialogOk(self):
+        self.useDarkMode = self.settingsUi.cb_darkMode.isChecked()
+        self.settings.setValue("App/useDarkMode", self.useDarkMode)
+        self.settingsDialog.hide()
 
     def createContextMenuActions(self):
         """
@@ -553,7 +578,7 @@ class MainWindow(QMainWindow):
             "Are you sure you want to delete the selected conversation(s)?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
-        )
+            )
 
         if confirm != QMessageBox.StandardButton.Yes:
             return
@@ -737,6 +762,7 @@ class MainWindow(QMainWindow):
         """
         self.settings.setValue("Window/geometry", self.saveGeometry())
         self.settings.setValue("App/lastSelectedDeployment", self.deploymentComboBox.currentData()["deploymentName"])
+        self.settings.setValue("App/useDarkMode", self.useDarkMode)
         self.settings.sync()
 
     def updateConversationsListItem(self, conversationId: int, newTitle: str):
@@ -811,3 +837,45 @@ class MainWindow(QMainWindow):
             "Database Vacuum Error",
             f"An error occurred while vacuuming the database:\n{errorMessage}",
         )
+
+    def setDarkMode(self):
+        self.useDarkMode = self.settingsUi.cb_darkMode.isChecked()
+        self.themeChanged.emit(self.useDarkMode)
+
+        lightSheet = """
+            QListWidget::item {
+                padding: 5px;               /* padding around individual items */
+                margin: 2px;                /* spacing between items */
+                background-color: #eef2ff;  /* light blue background */
+                color: #000000;
+            }
+            QListWidget::item:selected {
+                background-color: #8aa0d7;  /* darker blue background when selected */
+                color: #ffffff;
+            }
+        """
+
+        darkSheet = """
+            QListWidget::item {
+                padding: 5px;               /* padding around individual items */
+                margin: 2px;                /* spacing between items */
+                background-color: #2e3440;  /* light blue background */
+                color: #d8dee9;
+            }
+            QListWidget::item:selected {
+                background-color: #4c566a;  /* darker blue background when selected */
+                color: #eceff4;
+            }
+        """
+
+        if self.useDarkMode:
+            self.app.setPalette(darkPalette)
+            self.ui.conversationsList.setStyleSheet(darkSheet)
+        else:
+            self.app.setPalette(lightPalette)
+            self.ui.conversationsList.setStyleSheet(lightSheet)
+
+
+
+
+

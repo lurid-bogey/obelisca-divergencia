@@ -23,8 +23,7 @@ def main():
     )
 
     app = QApplication(sys.argv)
-    # app.setStyle('Fusion')
-    window = MainWindow(systemPrompt)
+    window = MainWindow(app, systemPrompt)
     window.show()
     sys.exit(app.exec())
 

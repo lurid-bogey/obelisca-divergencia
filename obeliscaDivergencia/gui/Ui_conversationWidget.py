@@ -45,7 +45,6 @@ class Ui_conversationForm(object):
         self.busyIndicator = QLabel(conversationForm)
         self.busyIndicator.setObjectName(u"busyIndicator")
         self.busyIndicator.setVisible(True)
-        self.busyIndicator.setStyleSheet(u"color: blue; font-weight: bold;")
         self.busyIndicator.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_3.addWidget(self.busyIndicator)

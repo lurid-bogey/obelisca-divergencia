@@ -33,9 +33,6 @@
      <property name="visible">
       <bool>true</bool>
      </property>
-     <property name="styleSheet">
-      <string notr="true">color: blue; font-weight: bold;</string>
-     </property>
      <property name="text">
       <string>&lt;html&gt;&lt;img src=&quot;assets/ai-spark.png&quot; width=&quot;16&quot; height=&quot;16&quot;&gt;&lt;span style=&quot;line-height:16px;&quot;&gt; Thinking... &lt;/span&gt;&lt;/html&gt;</string>
      </property>

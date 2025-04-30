@@ -30,6 +30,7 @@ class ChatTab(QWidget):
 
     def __init__(self, chatSession: ChatSession, conversationId: int, parent=None):
         super().__init__(parent)
+        self.mainWindow = parent
         self.chatSession = chatSession
         self.conversationId = conversationId  # Store the conversation ID
         self.threadPool = QThreadPool.globalInstance()
@@ -94,6 +95,7 @@ class ChatTab(QWidget):
         self.ui.attachDirectoryButton.clicked.connect(self.onAttachDirectory)
         self.ui.sendButton.clicked.connect(self.onSendClicked)
         self.ui.userInput.sendMessage.connect(self.onSendClicked)
+        self.mainWindow.themeChanged.connect(self.onThemeChanged)
 
         # If there's existing conversation history, load it into the display
         self.loadExistingConversation()
@@ -288,6 +290,7 @@ class ChatTab(QWidget):
             item.setSizeHint(customWidget.sizeHint())
             # store the path into the label
             customWidget.rightIconButton.customData = path
+            customWidget.setToolTip(displayText)
 
             # Connect the removeClicked signal to the removeAttachedFile slot
             customWidget.removeClicked.connect(self.removeAttachedFile)
@@ -303,8 +306,8 @@ class ChatTab(QWidget):
             }"""
             )
 
-            self.ui.attachedFilesList.addItem(item)
             self.ui.attachedFilesList.setItemWidget(item, customWidget)
+            self.ui.attachedFilesList.addItem(item)
 
     def removeAttachedFile(self, filePath: str):
         """
@@ -538,3 +541,35 @@ class ChatTab(QWidget):
         if parent and hasattr(parent, "conversationDb"):
             parent.conversationDb.updateConversationHistory(self.conversationId, self.chatSession.conversationHistory)
             logging.info(f"Saved updated conversation history for ID {self.conversationId}.")
+
+    def onThemeChanged(self, useDark: bool):
+
+        if useDark:
+            #self.ui.sendButton.setStyleSheet("background-color: #333333; color: #ffffff; text-align: left; padding-left: 10px;")
+            self.ui.busyIndicator.setStyleSheet("background-color: #333333; color: #ff9900; font-weight: bold;")
+            self.ui.attachedFilesList.setStyleSheet(
+                """QListWidget {
+                    background-color: #888888;  /* dark gray background */
+                }
+                QListWidget::item {
+                    background-color: #444444;  /* dark gray background */
+                    border: 1px solid #555555; 
+                    border-radius: 4px;
+                }
+                QListWidget::item:selected {
+                    background-color: #666666;  /* lighter gray background when selected */
+                }"""
+            )
+        else:
+            self.ui.sendButton.setStyleSheet("background-color: #eef2ff; text-align: left; padding-left: 10px;")
+            self.ui.busyIndicator.setStyleSheet("background-color: #eef2ff; color: blue; font-weight: bold;")
+            self.ui.attachedFilesList.setStyleSheet(
+                    """QListWidget::item {
+                    background-color: #eef2ff;  /* light blue background */
+                    border: 1px solid #ccc; 
+                    border-radius: 4px;
+                }
+                QListWidget::item:selected {
+                    background-color: #8aa0d7;  /* darker blue background when selected */
+                }"""
+            )
