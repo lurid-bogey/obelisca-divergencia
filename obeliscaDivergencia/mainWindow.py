@@ -146,7 +146,7 @@ class MainWindow(QMainWindow):
         # signals
         self.ui.tabWidget.currentChanged.connect(self.onTabChanged)
         self.ui.conversationsList.itemChanged.connect(self.onConversationTitleEdited)
-        self.ui.conversationsList.itemClicked.connect(self.onConversationSelected)  # <-- Added
+        self.ui.conversationsList.itemClicked.connect(self.onConversationSelected)
 
         # Enable tab closable
         self.ui.tabWidget.setTabsClosable(True)
@@ -502,8 +502,9 @@ class MainWindow(QMainWindow):
         self.ui.tabWidget.setCurrentIndex(tabIndex)
         self.chatTabs.append(newTab)
 
-        # Update the mapping dictionary
+        # Update the mapping dictionary and highlight
         self.conversationIdToTab[conversationId] = newTab
+        self.highlightConversationInList(conversationId)
 
         logging.info(
             f"Created new chat tab with deployment: {chatSession.deploymentName} for conversation ID {conversationId}."
@@ -656,8 +657,9 @@ class MainWindow(QMainWindow):
         Args:
             conversationId (int): The ID of the conversation to highlight.
         """
-        # ensure that the conversationsList allows only single selections
+        # reset the selections
         self.ui.conversationsList.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.ui.conversationsList.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
         listWidget = self.ui.conversationsList
         for row in range(listWidget.count()):
@@ -667,9 +669,6 @@ class MainWindow(QMainWindow):
                 listWidget.scrollToItem(item, QListWidget.ScrollHint.PositionAtCenter)
                 logging.info(f"Highlighted conversation ID {conversationId} in the list.")
                 break
-
-        # revert to extended selection
-        self.ui.conversationsList.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
     def onTabCloseRequested(self, index: int):
         """
