@@ -5,7 +5,8 @@ from docx import Document
 from pdfminer.high_level import extract_text
 import tiktoken
 
-from obeliscaDivergencia.config import initOpenAiClient
+from obeliscaDivergencia.config import initOpenAiClient, getDatabasePath
+from obeliscaDivergencia.utils.getUser import USER_NAME
 from obeliscaDivergencia.utils.database import ConversationDatabase
 
 
@@ -229,6 +230,7 @@ class ChatSession:
             response = self.client.chat.completions.create(
                 model=self.deploymentName,
                 messages=apiConversationHistory,  # Send the full conversation including file content
+                user=USER_NAME
             )
             reply = response.choices[0].message.content
             # Extract token usage from the API response if available.
@@ -284,6 +286,7 @@ class ChatSession:
             response = self.client.chat.completions.create(
                 model=self.deploymentName,
                 messages=[{"role": "user", "content": summaryPrompt}],
+                user=USER_NAME
             )
             summary = response.choices[0].message.content.strip()
             return summary
