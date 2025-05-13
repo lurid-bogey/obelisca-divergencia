@@ -276,8 +276,8 @@ class MainWindow(QMainWindow):
         # Reassemble the tooltip HTML string.
         # Note: This reassembly does not preserve any additional span attributes.
         newTooltip = (
-            f"<span>{texts[0]}</span> |"
-            f"<span>{texts[1]}</span> |"
+            f"<span>{texts[0]}</span> | "
+            f"<span>{texts[1]}</span> | "
             f"Token: <span>{texts[2]}</span>"
         )
 
@@ -846,6 +846,7 @@ class MainWindow(QMainWindow):
             return
 
         # Update the database with the new title
+        self.updateTooltip(item, newTitle=newTitle)
         self.conversationDb.updateConversationTitle(conversationId, newTitle)
         logging.info(f"User updated conversation ID {conversationId} title to '{newTitle}'.")
 
