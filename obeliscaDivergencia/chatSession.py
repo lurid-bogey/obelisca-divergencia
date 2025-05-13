@@ -282,13 +282,16 @@ class ChatSession:
             Optional[str]: The summary text or None if generation fails.
         """
         try:
-            summaryPrompt = "Summarize the following conversation in seven words or less:\n" f"{self.getConversationText()}"
+            summaryPrompt = ("Summarize the following conversation in six words or less. Do not use full sentences, "
+                             "use passive voice and list only key points: \n" f"{self.getConversationText()}")
             response = self.client.chat.completions.create(
                 model=self.deploymentName,
                 messages=[{"role": "user", "content": summaryPrompt}],
                 user=USER_NAME
             )
             summary = response.choices[0].message.content.strip()
+            summaryAsList = summary.split()[:6]
+            summary = ' '.join(summaryAsList)
             return summary
         except Exception as e:
             logging.error(f"Failed to generate summary: {e}")

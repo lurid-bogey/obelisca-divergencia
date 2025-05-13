@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 import datetime
 from typing import Optional, List, Dict
@@ -248,7 +249,40 @@ class MainWindow(QMainWindow):
         self.conversationDb.updateConversationTitle(conversationId, newTitle)
         # Update the QListWidgetItem
         item.setText(newTitle)
+        self.updateTooltip(item, newTitle=newTitle)
         logging.info(f"Renamed conversation ID {conversationId} to '{newTitle}'.")
+
+    def updateTooltip(self, widget, newTitle=None, newToken=None):
+        # Get the current tooltip HTML string
+        currentTooltip = widget.toolTip()
+
+        # Use regex to capture the inner text of each <span> tag.
+        # The regex looks for <span> elements and captures their inner text.
+        texts = re.findall(r'<span.*?>(.*?)</span>', currentTooltip)
+
+        # Ensure we have at least three spans (Title, Timestamp, Token number)
+        if len(texts) < 3:
+            print("Unexpected tooltip format.")
+            return
+
+        # Change the title (first span) if a new title is provided
+        if newTitle is not None:
+            texts[0] = newTitle
+
+        # Change the token number (third span) if a new token is provided
+        if newToken is not None:
+            texts[2] = newToken
+
+        # Reassemble the tooltip HTML string.
+        # Note: This reassembly does not preserve any additional span attributes.
+        newTooltip = (
+            f"<span>{texts[0]}</span> |"
+            f"<span>{texts[1]}</span> |"
+            f"Token: <span>{texts[2]}</span>"
+        )
+
+        # Set the updated tooltip back to the widget
+        widget.setToolTip(newTooltip)
 
     def summarizeSelectedConversation(self):
         """
@@ -408,7 +442,13 @@ class MainWindow(QMainWindow):
                 # Fallback if parsing fails
                 formattedTimestamp = createdAt
 
-            item.setToolTip(f"{formattedTimestamp} | Tokens: {tokens}")
+            newTooltip = (
+                f"<span>{title}</span> | "
+                f"<span>{formattedTimestamp}</span> | "
+                f"Tokens: <span>{tokens}</span>"
+            )
+
+            item.setToolTip(newTooltip)
             # Make the item editable
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
             self.ui.conversationsList.addItem(item)
@@ -483,7 +523,13 @@ class MainWindow(QMainWindow):
                 # Fallback to current UTC time if retrieval fails
                 isoTimestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S %z")
 
-            item.setToolTip(f"{isoTimestamp} | Tokens: {chatSession.countTokens()}")
+            newTooltip = (
+                f"<span>{title}</span> | "
+                f"<span>{isoTimestamp}</span> | "
+                f"Tokens: <span>{chatSession.countTokens()}</span>"
+            )
+
+            item.setToolTip(newTooltip)
             # Make the item editable
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
             self.ui.conversationsList.insertItem(0, item)  # Insert at top
