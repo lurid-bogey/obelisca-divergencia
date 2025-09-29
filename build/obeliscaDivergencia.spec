@@ -38,6 +38,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='../obeliscaDivergencia/assets/blah.ico'
 )
 
 coll = COLLECT(
