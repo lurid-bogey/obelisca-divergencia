@@ -2,9 +2,12 @@ import sys
 import logging
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QSettings
 
 from obeliscaDivergencia.mainWindow import MainWindow
 from obeliscaDivergencia.loggingConfig import setupLogging
+from obeliscaDivergencia.gui.themeUtils import applyTheme
+from obeliscaDivergencia.config import resourcePath
 
 setupLogging()
 
@@ -24,6 +27,12 @@ def main():
     )
 
     app = QApplication(sys.argv)
+
+    settingsFile = resourcePath("settings.ini")
+    settings = QSettings(str(settingsFile), QSettings.Format.IniFormat)
+    themeName = settings.value("App/theme", "light")
+    applyTheme(app, themeName)
+
     window = MainWindow(systemPrompt)
     window.show()
     sys.exit(app.exec())

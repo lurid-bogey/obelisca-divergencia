@@ -16,9 +16,10 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
 )
 from PySide6.QtCore import QByteArray, QSettings, Qt, QPoint, QThreadPool
-from PySide6.QtGui import QIcon, QKeySequence, QAction
+from PySide6.QtGui import QIcon, QKeySequence, QAction, QActionGroup
 
 from obeliscaDivergencia.gui.Ui_mainWindow import Ui_MainWindow
+from obeliscaDivergencia.gui.themeUtils import applyTheme
 from obeliscaDivergencia.chatTab import ChatTab
 from obeliscaDivergencia.chatSession import ChatSession
 from obeliscaDivergencia.utils.database import ConversationDatabase
@@ -126,10 +127,32 @@ class MainWindow(QMainWindow):
         self.conversationIdToTab = {}
         self.currentChatTab = None
 
+        # theme menu
+        self.menuTheme = QMenu("Theme", self)
+        self.menuBar().addMenu(self.menuTheme)
+
+        self.themeActionGroup = QActionGroup(self)
+        self.themeActionGroup.setExclusive(True)
+        self.actionThemeLight = QAction("Light", self, checkable=True)
+        self.actionThemeDark = QAction("Dark", self, checkable=True)
+        self.themeActionGroup.addAction(self.actionThemeLight)
+        self.themeActionGroup.addAction(self.actionThemeDark)
+        self.menuTheme.addAction(self.actionThemeLight)
+        self.menuTheme.addAction(self.actionThemeDark)
+
+        # restore previous choice (default: light)
+        currentTheme = self.settings.value("App/theme", "light")
+        if currentTheme == "dark":
+            self.actionThemeDark.setChecked(True)
+        else:
+            self.actionThemeLight.setChecked(True)
+
         # signals
         self.ui.tabWidget.currentChanged.connect(self.onTabChanged)
         self.ui.conversationsList.itemChanged.connect(self.onConversationTitleEdited)
-        self.ui.conversationsList.itemClicked.connect(self.onConversationSelected)  # <-- Added
+        self.ui.conversationsList.itemClicked.connect(self.onConversationSelected)
+        self.actionThemeLight.triggered.connect(lambda: self.switchTheme("light"))
+        self.actionThemeDark.triggered.connect(lambda: self.switchTheme("dark"))
 
         # Enable tab closable
         self.ui.tabWidget.setTabsClosable(True)
@@ -797,3 +820,12 @@ class MainWindow(QMainWindow):
             "Database Vacuum Error",
             f"An error occurred while vacuuming the database:\n{errorMessage}",
         )
+
+    def switchTheme(self, themeName: str):
+        """
+        Apply selected theme and persist in settings.ini
+        """
+        applyTheme(QApplication.instance(), themeName)
+        # store preference
+        self.settings.setValue("App/theme", themeName)
+        self.settings.sync()
